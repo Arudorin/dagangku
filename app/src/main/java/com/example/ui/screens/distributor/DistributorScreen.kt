@@ -31,7 +31,8 @@ import com.example.ui.theme.*
 @Composable
 fun DistributorScreen(
     viewModel: MainViewModel,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showHeader: Boolean = true
 ) {
     val distributorList by viewModel.distributorList.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
@@ -55,10 +56,12 @@ fun DistributorScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            DagangKuTopAppBar(
-                title = "Distributor (${distributorList.size})",
-                windowInsets = WindowInsets(0)
-            )
+            if (showHeader) {
+                DagangKuTopAppBar(
+                    title = "Distributor (${distributorList.size})",
+                    windowInsets = WindowInsets(0)
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -88,7 +91,7 @@ fun DistributorScreen(
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
                     .testTag("search_distributor_input"),
-                placeholder = { Text("Cari nama distributor, kontak, atau alamat...") },
+                placeholder = { Text("Cari distributor") },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
@@ -117,7 +120,7 @@ fun DistributorScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(filteredList, key = { it.id }) { distributor ->

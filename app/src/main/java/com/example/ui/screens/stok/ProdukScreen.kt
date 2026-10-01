@@ -124,7 +124,8 @@ fun ProdukScreen(
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(vertical = 4.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val filters = listOf("Semua", "Menipis", "Tersedia", "Habis")
@@ -132,7 +133,7 @@ fun ProdukScreen(
                     FilterChip(
                         selected = selectedFilter == filter,
                         onClick = { selectedFilter = filter },
-                        label = { Text(filter) },
+                        label = { Text(filter, maxLines = 1, softWrap = false) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -156,7 +157,7 @@ fun ProdukScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(filteredList, key = { it.produk.id }) { itemWithStock ->
@@ -177,7 +178,6 @@ fun ProdukScreen(
                             }
                         )
                     }
-                    item { Spacer(modifier = Modifier.height(60.dp)) }
                 }
             }
         }

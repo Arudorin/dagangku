@@ -35,7 +35,8 @@ import com.example.util.Formatters
 fun CustomerScreen(
     viewModel: MainViewModel,
     onNavigateToDetail: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showHeader: Boolean = true
 ) {
     val customerList by viewModel.customerList.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
@@ -59,10 +60,12 @@ fun CustomerScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            DagangKuTopAppBar(
-                title = "Pelanggan (${customerList.size})",
-                windowInsets = WindowInsets(0)
-            )
+            if (showHeader) {
+                DagangKuTopAppBar(
+                    title = "Pelanggan (${customerList.size})",
+                    windowInsets = WindowInsets(0)
+                )
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -92,7 +95,7 @@ fun CustomerScreen(
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
                     .testTag("search_customer_input"),
-                placeholder = { Text("Cari nama, nomor HP, atau alamat...") },
+                placeholder = { Text("Cari pelanggan") },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
@@ -121,7 +124,7 @@ fun CustomerScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(filteredList, key = { it.id }) { customer ->

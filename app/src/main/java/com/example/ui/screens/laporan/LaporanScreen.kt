@@ -120,7 +120,7 @@ fun LaporanScreen(
                                                 modifier = Modifier.size(14.dp)
                                             )
                                         }
-                                        Text(period.label)
+                                        Text(period.label, maxLines = 1, softWrap = false)
                                     }
                                 },
                                 colors = FilterChipDefaults.filterChipColors(

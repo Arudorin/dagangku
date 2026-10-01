@@ -354,7 +354,7 @@ fun CatatPembayaranBottomSheet(
                     FilterChip(
                         selected = metode == m,
                         onClick = { metode = m },
-                        label = { Text(m) },
+                        label = { Text(m, maxLines = 1, softWrap = false) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary

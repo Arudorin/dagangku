@@ -215,53 +215,121 @@ fun KeuanganScreen(
                 }
             }
 
-            // Scrollable Tab Row for 4 Tabs
-            PrimaryScrollableTabRow(
+            // Tab Row for 4 Tabs with short labels and badges
+            val piutangCount = remember(soList) { soList.count { it.sisaPiutang > 0 } }
+            val hutangCount = remember(poList) { poList.count { it.sisaHutang > 0 } }
+
+            TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = MaterialTheme.colorScheme.primary,
-                edgePadding = 16.dp
+                contentColor = MaterialTheme.colorScheme.primary
             ) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
+                    modifier = Modifier.testTag("tab_keuangan_kas"),
                     text = {
-                        Text(
-                            "Buku Kas (${bukuKas.size})",
-                            color = if (selectedTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Kas",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Medium
+                                ),
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Badge(
+                                containerColor = if (selectedTab == 0) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = if (selectedTab == 0) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                            ) {
+                                Text("${bukuKas.size}", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
+                    modifier = Modifier.testTag("tab_keuangan_piutang"),
                     text = {
-                        val uncompletedSos = soList.count { it.sisaPiutang > 0 }
-                        Text(
-                            if (uncompletedSos > 0) "Piutang ($uncompletedSos)" else "Piutang",
-                            color = if (selectedTab == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Piutang",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Medium
+                                ),
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Badge(
+                                containerColor = if (selectedTab == 1) StatusAmberContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = if (selectedTab == 1) StatusAmberText else MaterialTheme.colorScheme.onSurfaceVariant
+                            ) {
+                                Text("$piutangCount", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 )
                 Tab(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
+                    modifier = Modifier.testTag("tab_keuangan_hutang"),
                     text = {
-                        val uncompletedPos = poList.count { it.sisaHutang > 0 }
-                        Text(
-                            if (uncompletedPos > 0) "Hutang ($uncompletedPos)" else "Hutang",
-                            color = if (selectedTab == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Hutang",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Medium
+                                ),
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Badge(
+                                containerColor = if (selectedTab == 2) StatusRedContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = if (selectedTab == 2) StatusRedText else MaterialTheme.colorScheme.onSurfaceVariant
+                            ) {
+                                Text("$hutangCount", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 )
                 Tab(
                     selected = selectedTab == 3,
                     onClick = { selectedTab = 3 },
+                    modifier = Modifier.testTag("tab_keuangan_beban"),
                     text = {
-                        Text(
-                            "Biaya Operasional",
-                            color = if (selectedTab == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Beban",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = if (selectedTab == 3) FontWeight.Bold else FontWeight.Medium
+                                ),
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Badge(
+                                containerColor = if (selectedTab == 3) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                                contentColor = if (selectedTab == 3) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                            ) {
+                                Text("${pengeluaranList.size}", fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 )
             }
@@ -271,40 +339,47 @@ fun KeuanganScreen(
                 0 -> {
                     // TAB 0: BUKU KAS (CASH FLOW TIMELINE)
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // Filter Chips
-                        Row(
+                        // Horizontally scrollable Filter Chips
+                        androidx.compose.foundation.lazy.LazyRow(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                                .padding(vertical = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            FilterChip(
-                                selected = kasFilter == "Semua",
-                                onClick = { kasFilter = "Semua" },
-                                label = { Text("Semua Mutasi") },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                            item {
+                                FilterChip(
+                                    selected = kasFilter == "Semua",
+                                    onClick = { kasFilter = "Semua" },
+                                    label = { Text("Semua Mutasi", maxLines = 1, softWrap = false) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                    )
                                 )
-                            )
-                            FilterChip(
-                                selected = kasFilter == "Masuk",
-                                onClick = { kasFilter = "Masuk" },
-                                label = { Text("Uang Masuk (+)") },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = StatusGreenContainer,
-                                    selectedLabelColor = StatusGreenText
+                            }
+                            item {
+                                FilterChip(
+                                    selected = kasFilter == "Masuk",
+                                    onClick = { kasFilter = "Masuk" },
+                                    label = { Text("Uang Masuk (+)", maxLines = 1, softWrap = false) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = StatusGreenContainer,
+                                        selectedLabelColor = StatusGreenText
+                                    )
                                 )
-                            )
-                            FilterChip(
-                                selected = kasFilter == "Keluar",
-                                onClick = { kasFilter = "Keluar" },
-                                label = { Text("Uang Keluar (-)") },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = StatusRedContainer,
-                                    selectedLabelColor = StatusRedText
+                            }
+                            item {
+                                FilterChip(
+                                    selected = kasFilter == "Keluar",
+                                    onClick = { kasFilter = "Keluar" },
+                                    label = { Text("Uang Keluar (-)", maxLines = 1, softWrap = false) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = StatusRedContainer,
+                                        selectedLabelColor = StatusRedText
+                                    )
                                 )
-                            )
+                            }
                         }
 
                         val filteredKas = remember(bukuKas, kasFilter) {
@@ -324,7 +399,7 @@ fun KeuanganScreen(
                         } else {
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(16.dp),
+                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 items(filteredKas, key = { it.id }) { tx ->
@@ -334,7 +409,6 @@ fun KeuanganScreen(
                                         onNavigateToDistributor = onNavigateToDistributor
                                     )
                                 }
-                                item { Spacer(modifier = Modifier.height(60.dp)) }
                             }
                         }
                     }
@@ -346,7 +420,7 @@ fun KeuanganScreen(
 
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         item {
@@ -490,7 +564,7 @@ fun KeuanganScreen(
 
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         item {
@@ -641,7 +715,7 @@ fun KeuanganScreen(
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             items(pengeluaranList, key = { it.id }) { pengeluaran ->
@@ -943,7 +1017,7 @@ fun AddPengeluaranDialog(
                             FilterChip(
                                 selected = kategori == cat,
                                 onClick = { kategori = cat },
-                                label = { Text(cat, fontSize = 11.sp) },
+                                label = { Text(cat, fontSize = 11.sp, maxLines = 1, softWrap = false) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primary,
                                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -956,7 +1030,7 @@ fun AddPengeluaranDialog(
                             FilterChip(
                                 selected = kategori == cat,
                                 onClick = { kategori = cat },
-                                label = { Text(cat, fontSize = 11.sp) },
+                                label = { Text(cat, fontSize = 11.sp, maxLines = 1, softWrap = false) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = MaterialTheme.colorScheme.primary,
                                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary

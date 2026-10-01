@@ -35,7 +35,8 @@ fun SoListScreen(
     viewModel: MainViewModel,
     onNavigateToCreateSo: () -> Unit,
     onNavigateToDetail: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showHeader: Boolean = true
 ) {
     val soList by viewModel.soList.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
@@ -58,20 +59,22 @@ fun SoListScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            DagangKuTopAppBar(
-                title = "Penjualan (${soList.size})",
-                windowInsets = WindowInsets(0)
-            )
+            if (showHeader) {
+                DagangKuTopAppBar(
+                    title = "Penjualan (${soList.size})",
+                    windowInsets = WindowInsets(0)
+                )
+            }
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            FloatingActionButton(
                 onClick = onNavigateToCreateSo,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                icon = { Icon(Icons.Default.PointOfSale, contentDescription = null) },
-                text = { Text("Buat SO Baru") },
                 modifier = Modifier.testTag("fab_create_so")
-            )
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Buat SO Baru")
+            }
         },
         modifier = modifier
     ) { paddingValues ->
@@ -88,7 +91,7 @@ fun SoListScreen(
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
                     .testTag("search_so_input"),
-                placeholder = { Text("Cari nomor SO atau nama pelanggan...") },
+                placeholder = { Text("Cari SO / pelanggan") },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
@@ -115,7 +118,7 @@ fun SoListScreen(
                     FilterChip(
                         selected = selectedStatusFilter == filter,
                         onClick = { selectedStatusFilter = filter },
-                        label = { Text(filter) },
+                        label = { Text(filter, maxLines = 1, softWrap = false) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -135,7 +138,7 @@ fun SoListScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(filteredList, key = { it.so.id }) { soDetail ->
@@ -144,7 +147,6 @@ fun SoListScreen(
                             onClick = { onNavigateToDetail(soDetail.so.id) }
                         )
                     }
-                    item { Spacer(modifier = Modifier.height(72.dp)) }
                 }
             }
         }

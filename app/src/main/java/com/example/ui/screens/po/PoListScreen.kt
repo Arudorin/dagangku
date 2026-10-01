@@ -35,7 +35,8 @@ fun PoListScreen(
     viewModel: MainViewModel,
     onNavigateToCreatePo: () -> Unit,
     onNavigateToDetail: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showHeader: Boolean = true
 ) {
     val poList by viewModel.poList.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
@@ -58,20 +59,22 @@ fun PoListScreen(
     Scaffold(
         contentWindowInsets = WindowInsets(0),
         topBar = {
-            DagangKuTopAppBar(
-                title = "Pembelian (${poList.size})",
-                windowInsets = WindowInsets(0)
-            )
+            if (showHeader) {
+                DagangKuTopAppBar(
+                    title = "Pembelian (${poList.size})",
+                    windowInsets = WindowInsets(0)
+                )
+            }
         },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            FloatingActionButton(
                 onClick = onNavigateToCreatePo,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                icon = { Icon(Icons.Default.AddShoppingCart, contentDescription = null) },
-                text = { Text("Buat PO Baru") },
                 modifier = Modifier.testTag("fab_create_po")
-            )
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Buat PO Baru")
+            }
         },
         modifier = modifier
     ) { paddingValues ->
@@ -88,7 +91,7 @@ fun PoListScreen(
                     .fillMaxWidth()
                     .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
                     .testTag("search_po_input"),
-                placeholder = { Text("Cari nomor PO atau nama distributor...") },
+                placeholder = { Text("Cari PO / distributor") },
                 leadingIcon = {
                     Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
@@ -115,7 +118,7 @@ fun PoListScreen(
                     FilterChip(
                         selected = selectedStatusFilter == filter,
                         onClick = { selectedStatusFilter = filter },
-                        label = { Text(filter) },
+                        label = { Text(filter, maxLines = 1, softWrap = false) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -135,7 +138,7 @@ fun PoListScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(filteredList, key = { it.po.id }) { poDetail ->
@@ -144,7 +147,6 @@ fun PoListScreen(
                             onClick = { onNavigateToDetail(poDetail.po.id) }
                         )
                     }
-                    item { Spacer(modifier = Modifier.height(72.dp)) }
                 }
             }
         }

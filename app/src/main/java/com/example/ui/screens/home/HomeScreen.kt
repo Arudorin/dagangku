@@ -28,7 +28,6 @@ import com.example.data.model.ProdukWithStock
 import com.example.data.model.SoWithDetails
 import com.example.ui.MainViewModel
 import com.example.ui.components.DagangKuTopAppBar
-import com.example.ui.components.ExportReportDialog
 import com.example.ui.components.StatCard
 import com.example.ui.components.StatusBadge
 import com.example.ui.theme.*
@@ -56,7 +55,6 @@ fun HomeScreen(
     val laporanData by viewModel.laporanKeuanganData.collectAsStateWithLifecycle()
     val selectedPeriod by viewModel.selectedPeriodType.collectAsStateWithLifecycle()
 
-    var showExportDialog by remember { mutableStateOf(false) }
     var selectedTransactionTab by remember { mutableIntStateOf(0) } // 0: Semua, 1: SO, 2: PO
 
     val lowStockProducts = remember(produkList) { produkList.filter { it.isLowStock } }
@@ -79,16 +77,6 @@ fun HomeScreen(
                 title = "DagangKu",
                 actions = {
                     IconButton(
-                        onClick = { showExportDialog = true },
-                        modifier = Modifier.testTag("btn_export_beranda")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FileDownload,
-                            contentDescription = "Ekspor Laporan PDF & Excel",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    IconButton(
                         onClick = onNavigateToPengaturan,
                         modifier = Modifier.testTag("btn_pengaturan_beranda")
                     ) {
@@ -110,57 +98,7 @@ fun HomeScreen(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // 1. Welcome & Greeting Card with Quick Export Callout
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(18.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "Halo, Juragan! \uD83D\uDC4B",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Kelola omset, pantau laba bersih, piutang & stok toko secara presisi.",
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
-                                        lineHeight = 16.sp
-                                    )
-                                )
-                            }
-
-                            FilledTonalButton(
-                                onClick = { showExportDialog = true },
-                                colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                ),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                                shape = RoundedCornerShape(20.dp),
-                                modifier = Modifier.testTag("btn_header_export")
-                            ) {
-                                Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(16.dp))
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Ekspor", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 2. CORE FINANCIAL METRICS: OMSET, LABA, PIUTANG, HUTANG
+            // 1. CORE FINANCIAL METRICS: OMSET, LABA, PIUTANG, HUTANG
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -200,7 +138,7 @@ fun HomeScreen(
                                     viewModel.setPeriodType(period)
                                 }
                             },
-                            label = { Text(period.label) },
+                            label = { Text(period.label, maxLines = 1, softWrap = false) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = MaterialTheme.colorScheme.primary,
                                 selectedLabelColor = MaterialTheme.colorScheme.onPrimary
@@ -218,7 +156,7 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         StatCard(
-                            title = "Omset Penjualan",
+                            title = "Omset",
                             value = Formatters.formatRupiah(summary.totalPenjualan),
                             subtitle = "${laporanData.soCount} Pesanan SO",
                             icon = Icons.Default.TrendingUp,
@@ -304,7 +242,7 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         StatCard(
-                            title = "Piutang Pelanggan",
+                            title = "Piutang",
                             value = Formatters.formatRupiah(summary.totalPiutang),
                             subtitle = "Tagihan SO tertunda",
                             icon = Icons.Default.ReceiptLong,
@@ -317,7 +255,7 @@ fun HomeScreen(
                         )
 
                         StatCard(
-                            title = "Hutang Distributor",
+                            title = "Hutang",
                             value = Formatters.formatRupiah(summary.totalHutang),
                             subtitle = "Kewajiban PO tertunda",
                             icon = Icons.Default.AccountBalanceWallet,
@@ -483,65 +421,7 @@ fun HomeScreen(
                 }
             }
 
-            // 5. BANNER EKSPOR LAPORAN (PDF & EXCEL/CSV)
-            item {
-                Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showExportDialog = true }
-                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
-                        .testTag("banner_export_reports")
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(MaterialTheme.colorScheme.primaryContainer),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Description,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Ekspor Laporan PDF & Excel",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            )
-                            Text(
-                                text = "Unduh laporan laba/rugi, komisi agen, dan rekap SO/PO untuk arsip atau pembukuan.",
-                                style = MaterialTheme.typography.bodySmall.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 11.sp
-                                )
-                            )
-                        }
-
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            // 6. TRANSAKSI TERAKHIR (RECENT TRANSACTIONS)
+            // 5. TRANSAKSI TERAKHIR (RECENT TRANSACTIONS)
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -552,38 +432,44 @@ fun HomeScreen(
                         )
                     )
 
-                    // Tab selector for recent transactions
-                    Row(
+                    // Tab selector for recent transactions (horizontally scrollable LazyRow)
+                    androidx.compose.foundation.lazy.LazyRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        FilterChip(
-                            selected = selectedTransactionTab == 0,
-                            onClick = { selectedTransactionTab = 0 },
-                            label = { Text("Semua") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                        item {
+                            FilterChip(
+                                selected = selectedTransactionTab == 0,
+                                onClick = { selectedTransactionTab = 0 },
+                                label = { Text("Semua", maxLines = 1, softWrap = false) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                )
                             )
-                        )
-                        FilterChip(
-                            selected = selectedTransactionTab == 1,
-                            onClick = { selectedTransactionTab = 1 },
-                            label = { Text("Penjualan (SO)") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = StatusGreenContainer,
-                                selectedLabelColor = StatusGreenText
+                        }
+                        item {
+                            FilterChip(
+                                selected = selectedTransactionTab == 1,
+                                onClick = { selectedTransactionTab = 1 },
+                                label = { Text("Penjualan (SO)", maxLines = 1, softWrap = false) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = StatusGreenContainer,
+                                    selectedLabelColor = StatusGreenText
+                                )
                             )
-                        )
-                        FilterChip(
-                            selected = selectedTransactionTab == 2,
-                            onClick = { selectedTransactionTab = 2 },
-                            label = { Text("Pembelian (PO)") },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        }
+                        item {
+                            FilterChip(
+                                selected = selectedTransactionTab == 2,
+                                onClick = { selectedTransactionTab = 2 },
+                                label = { Text("Pembelian (PO)", maxLines = 1, softWrap = false) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
@@ -663,15 +549,6 @@ fun HomeScreen(
 
             item { Spacer(modifier = Modifier.height(24.dp)) }
         }
-    }
-
-    // Export Dialog
-    if (showExportDialog) {
-        ExportReportDialog(
-            laporan = laporanData,
-            soList = soList,
-            onDismiss = { showExportDialog = false }
-        )
     }
 }
 
