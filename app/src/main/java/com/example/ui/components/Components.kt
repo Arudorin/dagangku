@@ -40,7 +40,7 @@ fun DagangKuTopAppBar(
                     text = title,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onSurface
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -49,7 +49,7 @@ fun DagangKuTopAppBar(
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = Color.White.copy(alpha = 0.85f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -66,16 +66,16 @@ fun DagangKuTopAppBar(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Kembali",
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
         },
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = DagangBluePrimary,
-            titleContentColor = Color.White,
-            actionIconContentColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface,
+            titleContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface
         )
     )
 }
@@ -86,9 +86,9 @@ fun StatusBadge(
     modifier: Modifier = Modifier
 ) {
     val (bgColor, textColor, icon) = when (status) {
-        StatusPembayaran.LUNAS -> Triple(DagangIncomeGreenContainer, DagangOnIncomeGreen, Icons.Default.CheckCircle)
-        StatusPembayaran.SEBAGIAN -> Triple(DagangWarningAmberContainer, DagangOnWarningAmber, Icons.Default.Schedule)
-        StatusPembayaran.BELUM_LUNAS -> Triple(DagangDebtRedContainer, DagangOnDebtRed, Icons.Default.ErrorOutline)
+        StatusPembayaran.LUNAS -> Triple(StatusGreenContainer, StatusGreenText, Icons.Default.CheckCircle)
+        StatusPembayaran.SEBAGIAN -> Triple(StatusAmberContainer, StatusAmberText, Icons.Default.Schedule)
+        StatusPembayaran.BELUM_LUNAS -> Triple(StatusRedContainer, StatusRedText, Icons.Default.ErrorOutline)
     }
 
     Surface(
@@ -130,9 +130,9 @@ fun StockBadge(
     val isZero = stok <= 0
 
     val (bgColor, textColor, label) = when {
-        isZero -> Triple(DagangDebtRedContainer, DagangOnDebtRed, "Habis: 0 $satuan")
-        isLow -> Triple(DagangWarningAmberContainer, DagangOnWarningAmber, "Menipis: $stok $satuan (min $stokMinimum)")
-        else -> Triple(DagangBlueContainer, DagangOnBlueContainer, "Stok: $stok $satuan")
+        isZero -> Triple(StatusRedContainer, StatusRedText, "Habis: 0 $satuan")
+        isLow -> Triple(StatusAmberContainer, StatusAmberText, "Menipis: $stok $satuan (min $stokMinimum)")
+        else -> Triple(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.onPrimaryContainer, "Stok: $stok $satuan")
     }
 
     Surface(
@@ -169,8 +169,8 @@ fun StatCard(
     value: String,
     subtitle: String? = null,
     icon: ImageVector,
-    iconBgColor: Color = DagangBluePrimary,
-    accentColor: Color = DagangBluePrimary,
+    iconBgColor: Color = MaterialTheme.colorScheme.primary,
+    accentColor: Color = MaterialTheme.colorScheme.primary,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
 ) {
@@ -180,7 +180,7 @@ fun StatCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
-            .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
     ) {
         Column(
             modifier = Modifier.padding(14.dp)
@@ -193,7 +193,7 @@ fun StatCard(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelMedium.copy(
-                        color = NeutralTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Medium
                     ),
                     maxLines = 1,
@@ -204,7 +204,7 @@ fun StatCard(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(iconBgColor.copy(alpha = 0.12f)),
+                        .background(iconBgColor.copy(alpha = 0.16f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -234,7 +234,7 @@ fun StatCard(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall.copy(
-                        color = NeutralTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp
                     ),
                     maxLines = 1,
@@ -258,38 +258,50 @@ fun ConfirmDeleteDialog(
             Icon(
                 imageVector = Icons.Default.Warning,
                 contentDescription = null,
-                tint = DagangDebtRed
+                tint = StatusRedText
             )
         },
         title = {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         text = {
             Text(
                 text = message,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
         },
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = DagangDebtRed),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = StatusRedContainer,
+                    contentColor = StatusRedText
+                ),
                 modifier = Modifier.testTag("confirm_delete_button")
             ) {
-                Text("Hapus", color = Color.White)
+                Text("Hapus", fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             OutlinedButton(
                 onClick = onDismiss,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                ),
                 modifier = Modifier.testTag("cancel_delete_button")
             ) {
                 Text("Batal")
             }
         },
+        containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(16.dp)
     )
 }
@@ -314,13 +326,13 @@ fun EmptyStateView(
             modifier = Modifier
                 .size(72.dp)
                 .clip(CircleShape)
-                .background(DagangBlueContainer),
+                .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = DagangBluePrimary,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                 modifier = Modifier.size(36.dp)
             )
         }
@@ -331,7 +343,7 @@ fun EmptyStateView(
             text = title,
             style = MaterialTheme.typography.titleMedium.copy(
                 fontWeight = FontWeight.Bold,
-                color = NeutralTextPrimary
+                color = MaterialTheme.colorScheme.onSurface
             ),
             textAlign = TextAlign.Center
         )
@@ -341,7 +353,7 @@ fun EmptyStateView(
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodyMedium.copy(
-                color = NeutralTextSecondary
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             ),
             textAlign = TextAlign.Center
         )
@@ -350,7 +362,10 @@ fun EmptyStateView(
             Spacer(modifier = Modifier.height(20.dp))
             Button(
                 onClick = onActionClick,
-                colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.testTag("empty_state_action_button")
             ) {

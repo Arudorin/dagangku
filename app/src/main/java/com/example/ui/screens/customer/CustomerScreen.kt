@@ -66,8 +66,8 @@ fun CustomerScreen(
                     editingCustomer = null
                     showFormDialog = true
                 },
-                containerColor = DagangBluePrimary,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.testTag("fab_add_customer")
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Tambah Pelanggan")
@@ -90,7 +90,7 @@ fun CustomerScreen(
                     .testTag("search_customer_input"),
                 placeholder = { Text("Cari nama, nomor HP, atau alamat...") },
                 leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null, tint = NeutralTextSecondary)
+                    Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
@@ -183,7 +183,7 @@ fun CustomerCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
             .testTag("customer_card_${customer.id}")
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -197,21 +197,21 @@ fun CustomerCard(
                         text = customer.nama,
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = NeutralTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     if (customer.persenKomisi > 0) {
                         Surface(
-                            color = Color(0xFFF3E8FF),
+                            color = StatusPurpleContainer,
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.padding(top = 4.dp)
                         ) {
                             Text(
                                 text = "Komisi: ${Formatters.formatPersen(customer.persenKomisi)}",
                                 style = MaterialTheme.typography.labelSmall.copy(
-                                    color = Color(0xFF7E22CE),
+                                    color = StatusPurpleText,
                                     fontWeight = FontWeight.Bold
                                 ),
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -230,7 +230,7 @@ fun CustomerCard(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit Pelanggan",
-                            tint = DagangBluePrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -243,7 +243,7 @@ fun CustomerCard(
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
                             contentDescription = "Hapus Pelanggan",
-                            tint = DagangDebtRed,
+                            tint = StatusRedText,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -260,13 +260,13 @@ fun CustomerCard(
                     Icon(
                         imageVector = Icons.Default.Phone,
                         contentDescription = null,
-                        tint = NeutralTextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = customer.noHp,
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
             }
@@ -279,13 +279,13 @@ fun CustomerCard(
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = null,
-                        tint = NeutralTextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = customer.alamat,
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -302,14 +302,14 @@ fun CustomerCard(
                 Text(
                     text = "Lihat Profil & Harga Khusus",
                     style = MaterialTheme.typography.labelMedium.copy(
-                        color = DagangBluePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.SemiBold
                     )
                 )
                 Icon(
                     imageVector = Icons.Default.ChevronRight,
                     contentDescription = null,
-                    tint = DagangBluePrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -332,10 +332,14 @@ fun CustomerFormDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Text(
                 text = if (initialCustomer == null) "Tambah Pelanggan Baru" else "Edit Pelanggan",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         text = {
@@ -348,7 +352,7 @@ fun CustomerFormDialog(
                 if (errorMessage != null) {
                     Text(
                         text = errorMessage!!,
-                        color = DagangDebtRed,
+                        color = StatusRedText,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
                     )
                 }
@@ -414,14 +418,22 @@ fun CustomerFormDialog(
                     val komisi = komisiText.toDoubleOrNull() ?: 0.0
                     onSave(nama.trim(), noHp.trim(), alamat.trim(), komisi)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 modifier = Modifier.testTag("btn_save_customer")
             ) {
                 Text("Simpan")
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
                 Text("Batal")
             }
         },

@@ -72,7 +72,7 @@ fun CreatePoScreen(
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
-                modifier = Modifier.border(1.dp, NeutralOutline)
+                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Row(
                     modifier = Modifier
@@ -84,13 +84,13 @@ fun CreatePoScreen(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = "Total Pembelian",
-                            style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Text(
                             text = Formatters.formatRupiah(totalPembelian),
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = DagangBluePrimary,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 18.sp
                             )
                         )
@@ -115,7 +115,10 @@ fun CreatePoScreen(
                                 onSuccess = onSuccessCreate
                             )
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.testTag("btn_submit_po")
                     ) {
@@ -139,7 +142,7 @@ fun CreatePoScreen(
             if (validationError != null) {
                 item {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = DagangDebtRedContainer),
+                        colors = CardDefaults.cardColors(containerColor = StatusRedContainer),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -147,11 +150,11 @@ fun CreatePoScreen(
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = DagangDebtRed)
+                            Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = StatusRedText)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = validationError!!,
-                                style = MaterialTheme.typography.bodyMedium.copy(color = DagangOnDebtRed)
+                                style = MaterialTheme.typography.bodyMedium.copy(color = StatusRedText)
                             )
                         }
                     }
@@ -162,18 +165,18 @@ fun CreatePoScreen(
             item {
                 Card(
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = DagangBlueContainer.copy(alpha = 0.6f)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Info, contentDescription = null, tint = DagangBluePrimary, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Menyimpan PO akan otomatis menambah stok produk dan memperbarui Harga Dasar (HPP) dengan metode Weighted Average Cost.",
-                            style = MaterialTheme.typography.bodySmall.copy(color = DagangOnBlueContainer, lineHeight = 16.sp)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onPrimaryContainer, lineHeight = 16.sp)
                         )
                     }
                 }
@@ -187,7 +190,7 @@ fun CreatePoScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -195,7 +198,10 @@ fun CreatePoScreen(
                     ) {
                         Text(
                             text = "Informasi Dokumen PO",
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         )
 
                         OutlinedTextField(
@@ -235,7 +241,7 @@ fun CreatePoScreen(
                                             Column {
                                                 Text(dist.nama, fontWeight = FontWeight.SemiBold)
                                                 if (dist.alamat.isNotBlank()) {
-                                                    Text(dist.alamat, style = MaterialTheme.typography.bodySmall, color = NeutralTextSecondary)
+                                                    Text(dist.alamat, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                                 }
                                             }
                                         },
@@ -255,10 +261,10 @@ fun CreatePoScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Tanggal Dokumen:", style = MaterialTheme.typography.bodyMedium)
+                            Text("Tanggal Dokumen:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
                                 text = Formatters.formatTanggal(tanggal),
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                             )
                         }
                     }
@@ -276,13 +282,16 @@ fun CreatePoScreen(
                         text = "Daftar Item Barang (${cartItems.size})",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = NeutralTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
 
                     Button(
                         onClick = { showAddItemDialog = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.testTag("btn_add_item_po")
                     ) {
@@ -301,7 +310,7 @@ fun CreatePoScreen(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, NeutralOutline, RoundedCornerShape(12.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                     ) {
                         Column(
                             modifier = Modifier
@@ -309,10 +318,10 @@ fun CreatePoScreen(
                                 .padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = NeutralTextSecondary, modifier = Modifier.size(36.dp))
+                            Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(36.dp))
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("Belum ada produk yang dimasukkan", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                            Text("Ketuk tombol 'Tambah Item' untuk memilih produk yang dibeli.", style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary))
+                            Text("Belum ada produk yang dimasukkan", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface))
+                            Text("Ketuk tombol 'Tambah Item' untuk memilih produk yang dibeli.", style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
                         }
                     }
                 }
@@ -324,7 +333,7 @@ fun CreatePoScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
                     ) {
                         Row(
                             modifier = Modifier.padding(12.dp),
@@ -333,20 +342,23 @@ fun CreatePoScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = item.produk.nama,
-                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    style = MaterialTheme.typography.titleSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    ),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "${item.qty} ${item.produk.satuan} × ${Formatters.formatRupiah(item.hargaBeli)}",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 )
                                 Text(
                                     text = "Subtotal: ${Formatters.formatRupiah(item.subtotal)}",
                                     style = MaterialTheme.typography.bodyMedium.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = DagangBluePrimary
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                 )
                             }
@@ -355,7 +367,7 @@ fun CreatePoScreen(
                                 onClick = { cartItems.removeAt(index) },
                                 modifier = Modifier.testTag("remove_item_$index")
                             ) {
-                                Icon(Icons.Default.DeleteOutline, contentDescription = "Hapus Item", tint = DagangDebtRed)
+                                Icon(Icons.Default.DeleteOutline, contentDescription = "Hapus Item", tint = StatusRedText)
                             }
                         }
                     }
@@ -385,25 +397,32 @@ fun CreatePoScreen(
 fun AddPoItemDialog(
     allProduk: List<Produk>,
     onDismiss: () -> Unit,
-    onAddItem: (produk: Produk, qty: Int, hargaBeli: Double) -> Unit
+    onAddItem: (produk: Produk, qty: Int, hargaBeli: Long) -> Unit
 ) {
     var selectedProduct by remember { mutableStateOf(allProduk.firstOrNull()) }
     var qtyText by remember { mutableStateOf("1") }
     var hargaBeliText by remember {
-        mutableStateOf(selectedProduct?.hargaDasar?.toLong()?.toString() ?: "")
+        mutableStateOf(selectedProduct?.hargaDasar?.toString() ?: "")
     }
 
     var expandedDropdown by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val qty = qtyText.toIntOrNull() ?: 0
-    val hargaBeli = hargaBeliText.toDoubleOrNull() ?: 0.0
-    val subtotal = qty * hargaBeli
+    val hargaBeli = hargaBeliText.toLongOrNull() ?: 0L
+    val subtotal = qty.toLong() * hargaBeli
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
-            Text("Tambah Produk ke PO", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            Text(
+                "Tambah Produk ke PO",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
         },
         text = {
             Column(
@@ -415,7 +434,7 @@ fun AddPoItemDialog(
                 if (errorMessage != null) {
                     Text(
                         text = errorMessage!!,
-                        color = DagangDebtRed,
+                        color = StatusRedText,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
                     )
                 }
@@ -445,12 +464,12 @@ fun AddPoItemDialog(
                                 text = {
                                     Column {
                                         Text(prod.nama, fontWeight = FontWeight.SemiBold)
-                                        Text("HPP Sekarang: ${Formatters.formatRupiah(prod.hargaDasar)} / ${prod.satuan}", fontSize = 12.sp, color = NeutralTextSecondary)
+                                        Text("HPP Sekarang: ${Formatters.formatRupiah(prod.hargaDasar)} / ${prod.satuan}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 },
                                 onClick = {
                                     selectedProduct = prod
-                                    hargaBeliText = prod.hargaDasar.toLong().toString()
+                                    hargaBeliText = prod.hargaDasar.toString()
                                     expandedDropdown = false
                                 }
                             )
@@ -487,7 +506,7 @@ fun AddPoItemDialog(
                 // Subtotal preview
                 Card(
                     shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = NeutralSurfaceVariant),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -496,10 +515,10 @@ fun AddPoItemDialog(
                             .padding(10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Subtotal Item:", style = MaterialTheme.typography.bodyMedium)
+                        Text("Subtotal Item:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             text = Formatters.formatRupiah(subtotal),
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = DagangBluePrimary)
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                         )
                     }
                 }
@@ -523,14 +542,22 @@ fun AddPoItemDialog(
                     }
                     onAddItem(prod, qty, hargaBeli)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 modifier = Modifier.testTag("btn_confirm_add_po_item")
             ) {
                 Text("Tambahkan")
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
                 Text("Batal")
             }
         },

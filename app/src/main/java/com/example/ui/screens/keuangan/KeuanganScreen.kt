@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -65,8 +63,8 @@ fun KeuanganScreen(
             if (selectedTab == 3) {
                 ExtendedFloatingActionButton(
                     onClick = { showAddPengeluaranDialog = true },
-                    containerColor = DagangBluePrimary,
-                    contentColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
                     icon = { Icon(Icons.Default.AddCard, contentDescription = null) },
                     text = { Text("Catat Pengeluaran") },
                     modifier = Modifier.testTag("fab_catat_pengeluaran")
@@ -88,7 +86,7 @@ fun KeuanganScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-                    .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -102,13 +100,13 @@ fun KeuanganScreen(
                         Column {
                             Text(
                                 text = "Saldo Kas Saat Ini",
-                                style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                             Text(
                                 text = Formatters.formatRupiah(kasSummary.saldoKas),
                                 style = MaterialTheme.typography.headlineSmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = if (kasSummary.saldoKas >= 0) DagangBluePrimary else DagangDebtRed
+                                    color = if (kasSummary.saldoKas >= 0) StatusGreenText else StatusRedText
                                 )
                             )
                         }
@@ -117,19 +115,19 @@ fun KeuanganScreen(
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(CircleShape)
-                                .background(DagangBlueContainer),
+                                .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.AccountBalance,
                                 contentDescription = null,
-                                tint = DagangBluePrimary,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
                     }
 
-                    HorizontalDivider(color = NeutralOutline)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 
                     // In & Out Summary Grid
                     Row(
@@ -142,19 +140,22 @@ fun KeuanganScreen(
                                     modifier = Modifier
                                         .size(10.dp)
                                         .clip(CircleShape)
-                                        .background(DagangIncomeGreen)
+                                        .background(StatusGreenText)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "Uang Masuk (Pelunasan)",
-                                    style = MaterialTheme.typography.labelSmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 11.sp
+                                    )
                                 )
                             }
                             Text(
                                 text = "+${Formatters.formatRupiah(kasSummary.totalMasuk)}",
                                 style = MaterialTheme.typography.titleSmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = DagangIncomeGreen
+                                    color = StatusGreenText
                                 )
                             )
                         }
@@ -165,19 +166,22 @@ fun KeuanganScreen(
                                     modifier = Modifier
                                         .size(10.dp)
                                         .clip(CircleShape)
-                                        .background(DagangDebtRed)
+                                        .background(StatusRedText)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = "Uang Keluar (PO + Beban)",
-                                    style = MaterialTheme.typography.labelSmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 11.sp
+                                    )
                                 )
                             }
                             Text(
                                 text = "-${Formatters.formatRupiah(kasSummary.totalKeluar)}",
                                 style = MaterialTheme.typography.titleSmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = DagangDebtRed
+                                    color = StatusRedText
                                 )
                             )
                         }
@@ -189,20 +193,28 @@ fun KeuanganScreen(
             PrimaryScrollableTabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = MaterialTheme.colorScheme.surface,
-                contentColor = DagangBluePrimary,
+                contentColor = MaterialTheme.colorScheme.primary,
                 edgePadding = 16.dp
             ) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("Buku Kas (${bukuKas.size})") }
+                    text = {
+                        Text(
+                            "Buku Kas (${bukuKas.size})",
+                            color = if (selectedTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
                     text = {
                         val uncompletedSos = soList.count { it.sisaPiutang > 0 }
-                        Text(if (uncompletedSos > 0) "Piutang ($uncompletedSos)" else "Piutang")
+                        Text(
+                            if (uncompletedSos > 0) "Piutang ($uncompletedSos)" else "Piutang",
+                            color = if (selectedTab == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 )
                 Tab(
@@ -210,13 +222,21 @@ fun KeuanganScreen(
                     onClick = { selectedTab = 2 },
                     text = {
                         val uncompletedPos = poList.count { it.sisaHutang > 0 }
-                        Text(if (uncompletedPos > 0) "Hutang ($uncompletedPos)" else "Hutang")
+                        Text(
+                            if (uncompletedPos > 0) "Hutang ($uncompletedPos)" else "Hutang",
+                            color = if (selectedTab == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 )
                 Tab(
                     selected = selectedTab == 3,
                     onClick = { selectedTab = 3 },
-                    text = { Text("Biaya Operasional") }
+                    text = {
+                        Text(
+                            "Biaya Operasional",
+                            color = if (selectedTab == 3) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 )
             }
 
@@ -235,15 +255,19 @@ fun KeuanganScreen(
                             FilterChip(
                                 selected = kasFilter == "Semua",
                                 onClick = { kasFilter = "Semua" },
-                                label = { Text("Semua Mutasi") }
+                                label = { Text("Semua Mutasi") },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                )
                             )
                             FilterChip(
                                 selected = kasFilter == "Masuk",
                                 onClick = { kasFilter = "Masuk" },
                                 label = { Text("Uang Masuk (+)") },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = DagangIncomeGreenContainer,
-                                    selectedLabelColor = DagangOnIncomeGreen
+                                    selectedContainerColor = StatusGreenContainer,
+                                    selectedLabelColor = StatusGreenText
                                 )
                             )
                             FilterChip(
@@ -251,8 +275,8 @@ fun KeuanganScreen(
                                 onClick = { kasFilter = "Keluar" },
                                 label = { Text("Uang Keluar (-)") },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = DagangDebtRedContainer,
-                                    selectedLabelColor = DagangOnDebtRed
+                                    selectedContainerColor = StatusRedContainer,
+                                    selectedLabelColor = StatusRedText
                                 )
                             )
                         }
@@ -278,7 +302,11 @@ fun KeuanganScreen(
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 items(filteredKas, key = { it.id }) { tx ->
-                                    KasTransactionCard(tx = tx)
+                                    KasTransactionCard(
+                                        transaction = tx,
+                                        onNavigateToCustomer = onNavigateToCustomer,
+                                        onNavigateToDistributor = onNavigateToDistributor
+                                    )
                                 }
                                 item { Spacer(modifier = Modifier.height(60.dp)) }
                             }
@@ -298,18 +326,18 @@ fun KeuanganScreen(
                         item {
                             Card(
                                 shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = DagangWarningAmberContainer.copy(alpha = 0.5f)),
+                                colors = CardDefaults.cardColors(containerColor = StatusAmberContainer),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Row(
                                     modifier = Modifier.padding(12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.Info, contentDescription = null, tint = DagangWarningAmber)
+                                    Icon(Icons.Default.Info, contentDescription = null, tint = StatusAmberText)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = "Total Piutang Tertunda: ${Formatters.formatRupiah(summary.totalPiutang)} dari ${uncompletedSos.size} pesanan. Ketuk 'Terima Bayar' untuk mencatat cicilan atau pelunasan.",
-                                        style = MaterialTheme.typography.bodySmall.copy(color = DagangOnWarningAmber, lineHeight = 16.sp)
+                                        style = MaterialTheme.typography.bodySmall.copy(color = StatusAmberText, lineHeight = 16.sp)
                                     )
                                 }
                             }
@@ -331,7 +359,7 @@ fun KeuanganScreen(
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
                                         .testTag("piutang_item_${soDetail.so.id}")
                                 ) {
                                     Column(modifier = Modifier.padding(14.dp)) {
@@ -343,33 +371,54 @@ fun KeuanganScreen(
                                             Column(modifier = Modifier.weight(1f)) {
                                                 Text(
                                                     text = soDetail.customer?.nama ?: "Customer Umum",
-                                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
                                                 )
                                                 Text(
                                                     text = "${soDetail.so.nomor} • ${Formatters.formatTanggal(soDetail.so.tanggal)}",
-                                                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                                 )
                                             }
                                             StatusBadge(status = soDetail.status)
                                         }
 
-                                        HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = NeutralOutline)
+                                        HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = MaterialTheme.colorScheme.outline)
 
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Column {
-                                                Text("Total Nilai SO", style = MaterialTheme.typography.labelSmall.copy(color = NeutralTextSecondary))
-                                                Text(Formatters.formatRupiah(soDetail.so.total), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                                                Text("Total Nilai SO", style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
+                                                Text(
+                                                    Formatters.formatRupiah(soDetail.so.total),
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                )
                                             }
                                             Column {
-                                                Text("Sudah Dicicil", style = MaterialTheme.typography.labelSmall.copy(color = NeutralTextSecondary))
-                                                Text(Formatters.formatRupiah(soDetail.totalPaid), style = MaterialTheme.typography.bodyMedium.copy(color = DagangIncomeGreen, fontWeight = FontWeight.Bold))
+                                                Text("Sudah Dicicil", style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
+                                                Text(
+                                                    Formatters.formatRupiah(soDetail.totalPaid),
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        color = StatusGreenText,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                )
                                             }
                                             Column(horizontalAlignment = Alignment.End) {
-                                                Text("Sisa Piutang", style = MaterialTheme.typography.labelSmall.copy(color = NeutralTextSecondary))
-                                                Text(Formatters.formatRupiah(soDetail.sisaPiutang), style = MaterialTheme.typography.titleSmall.copy(color = DagangDebtRed, fontWeight = FontWeight.Bold))
+                                                Text("Sisa Piutang", style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
+                                                Text(
+                                                    Formatters.formatRupiah(soDetail.sisaPiutang),
+                                                    style = MaterialTheme.typography.titleSmall.copy(
+                                                        color = StatusRedText,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                )
                                             }
                                         }
 
@@ -387,7 +436,10 @@ fun KeuanganScreen(
                                                     remainingBalance = soDetail.sisaPiutang
                                                 )
                                             },
-                                            colors = ButtonDefaults.buttonColors(containerColor = DagangIncomeGreen),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = StatusGreenContainer,
+                                                contentColor = StatusGreenText
+                                            ),
                                             shape = RoundedCornerShape(10.dp),
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -418,18 +470,18 @@ fun KeuanganScreen(
                         item {
                             Card(
                                 shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(containerColor = DagangDebtRedContainer.copy(alpha = 0.5f)),
+                                colors = CardDefaults.cardColors(containerColor = StatusRedContainer),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Row(
                                     modifier = Modifier.padding(12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.Info, contentDescription = null, tint = DagangDebtRed)
+                                    Icon(Icons.Default.Info, contentDescription = null, tint = StatusRedText)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = "Total Hutang PO ke Distributor: ${Formatters.formatRupiah(summary.totalHutang)} dari ${uncompletedPos.size} pesanan. Ketuk 'Bayar Hutang' untuk mencatat cicilan atau pelunasan.",
-                                        style = MaterialTheme.typography.bodySmall.copy(color = DagangOnDebtRed, lineHeight = 16.sp)
+                                        style = MaterialTheme.typography.bodySmall.copy(color = StatusRedText, lineHeight = 16.sp)
                                     )
                                 }
                             }
@@ -451,7 +503,7 @@ fun KeuanganScreen(
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
                                         .testTag("hutang_item_${poDetail.po.id}")
                                 ) {
                                     Column(modifier = Modifier.padding(14.dp)) {
@@ -463,33 +515,54 @@ fun KeuanganScreen(
                                             Column(modifier = Modifier.weight(1f)) {
                                                 Text(
                                                     text = poDetail.distributor?.nama ?: "Distributor",
-                                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
                                                 )
                                                 Text(
                                                     text = "${poDetail.po.nomor} • ${Formatters.formatTanggal(poDetail.po.tanggal)}",
-                                                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                                 )
                                             }
                                             StatusBadge(status = poDetail.status)
                                         }
 
-                                        HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = NeutralOutline)
+                                        HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = MaterialTheme.colorScheme.outline)
 
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Column {
-                                                Text("Total Nilai PO", style = MaterialTheme.typography.labelSmall.copy(color = NeutralTextSecondary))
-                                                Text(Formatters.formatRupiah(poDetail.po.total), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold))
+                                                Text("Total Nilai PO", style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
+                                                Text(
+                                                    Formatters.formatRupiah(poDetail.po.total),
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                )
                                             }
                                             Column {
-                                                Text("Sudah Dibayar", style = MaterialTheme.typography.labelSmall.copy(color = NeutralTextSecondary))
-                                                Text(Formatters.formatRupiah(poDetail.totalPaid), style = MaterialTheme.typography.bodyMedium.copy(color = DagangIncomeGreen, fontWeight = FontWeight.Bold))
+                                                Text("Sudah Dibayar", style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
+                                                Text(
+                                                    Formatters.formatRupiah(poDetail.totalPaid),
+                                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                                        color = StatusGreenText,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                )
                                             }
                                             Column(horizontalAlignment = Alignment.End) {
-                                                Text("Sisa Hutang", style = MaterialTheme.typography.labelSmall.copy(color = NeutralTextSecondary))
-                                                Text(Formatters.formatRupiah(poDetail.sisaHutang), style = MaterialTheme.typography.titleSmall.copy(color = DagangDebtRed, fontWeight = FontWeight.Bold))
+                                                Text("Sisa Hutang", style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
+                                                Text(
+                                                    Formatters.formatRupiah(poDetail.sisaHutang),
+                                                    style = MaterialTheme.typography.titleSmall.copy(
+                                                        color = StatusRedText,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                )
                                             }
                                         }
 
@@ -507,7 +580,10 @@ fun KeuanganScreen(
                                                     remainingBalance = poDetail.sisaHutang
                                                 )
                                             },
-                                            colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                            ),
                                             shape = RoundedCornerShape(10.dp),
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -549,7 +625,7 @@ fun KeuanganScreen(
                                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+                                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
                                 ) {
                                     Row(
                                         modifier = Modifier.padding(14.dp),
@@ -558,13 +634,13 @@ fun KeuanganScreen(
                                         Column(modifier = Modifier.weight(1f)) {
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Surface(
-                                                    color = DagangBlueContainer,
+                                                    color = MaterialTheme.colorScheme.primaryContainer,
                                                     shape = RoundedCornerShape(6.dp)
                                                 ) {
                                                     Text(
                                                         text = pengeluaran.kategori,
                                                         style = MaterialTheme.typography.labelSmall.copy(
-                                                            color = DagangOnBlueContainer,
+                                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                                                             fontWeight = FontWeight.Bold
                                                         ),
                                                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -573,14 +649,17 @@ fun KeuanganScreen(
                                                 Spacer(modifier = Modifier.width(8.dp))
                                                 Text(
                                                     text = Formatters.formatTanggal(pengeluaran.tanggal),
-                                                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                                 )
                                             }
 
                                             Spacer(modifier = Modifier.height(4.dp))
                                             Text(
                                                 text = pengeluaran.keterangan.ifBlank { "Pengeluaran ${pengeluaran.kategori}" },
-                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
                                             )
                                         }
 
@@ -588,7 +667,7 @@ fun KeuanganScreen(
                                             text = Formatters.formatRupiah(pengeluaran.nominal),
                                             style = MaterialTheme.typography.titleSmall.copy(
                                                 fontWeight = FontWeight.Bold,
-                                                color = DagangDebtRed
+                                                color = StatusRedText
                                             )
                                         )
 
@@ -599,14 +678,15 @@ fun KeuanganScreen(
                                             Icon(
                                                 imageVector = Icons.Default.DeleteOutline,
                                                 contentDescription = "Hapus",
-                                                tint = NeutralTextSecondary,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
                                     }
                                 }
                             }
-                            item { Spacer(modifier = Modifier.height(72.dp)) }
+
+                            item { Spacer(modifier = Modifier.height(80.dp)) }
                         }
                     }
                 }
@@ -614,12 +694,13 @@ fun KeuanganScreen(
         }
     }
 
-    // Modal Bottom Sheet "Catat Pembayaran" for Piutang & Hutang
-    paymentTargetInfo?.let { target ->
+    // Modal Bottom Sheet "Catat Pembayaran"
+    if (paymentTargetInfo != null) {
         CatatPembayaranBottomSheet(
-            targetInfo = target,
+            targetInfo = paymentTargetInfo!!,
             onDismiss = { paymentTargetInfo = null },
             onSavePayment = { nominal, metode, catatan ->
+                val target = paymentTargetInfo!!
                 viewModel.recordPayment(
                     tipe = target.tipe,
                     refId = target.refId,
@@ -647,13 +728,13 @@ fun KeuanganScreen(
         )
     }
 
-    // Delete Pengeluaran Confirmation
-    pengeluaranToDelete?.let { item ->
+    // Delete Confirmation Dialog
+    if (pengeluaranToDelete != null) {
         ConfirmDeleteDialog(
-            title = "Hapus Catatan Pengeluaran?",
-            message = "Apakah Anda yakin ingin menghapus catatan pengeluaran '${item.kategori}' sebesar ${Formatters.formatRupiah(item.nominal)}?",
+            title = "Hapus Catatan Pengeluaran",
+            message = "Apakah Anda yakin ingin menghapus pengeluaran '${pengeluaranToDelete!!.keterangan}' sebesar ${Formatters.formatRupiah(pengeluaranToDelete!!.nominal)}?",
             onConfirm = {
-                viewModel.deletePengeluaran(item)
+                viewModel.deletePengeluaran(pengeluaranToDelete!!)
                 pengeluaranToDelete = null
             },
             onDismiss = { pengeluaranToDelete = null }
@@ -663,9 +744,11 @@ fun KeuanganScreen(
 
 @Composable
 fun KasTransactionCard(
-    tx: KasTransaction
+    transaction: KasTransaction,
+    onNavigateToCustomer: () -> Unit = {},
+    onNavigateToDistributor: () -> Unit = {}
 ) {
-    val isMasuk = tx.tipe == KasType.MASUK
+    val isMasuk = transaction.tipe == KasType.MASUK
 
     Card(
         shape = RoundedCornerShape(14.dp),
@@ -673,7 +756,8 @@ fun KasTransactionCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
+            .testTag("kas_transaction_${transaction.id}")
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -681,15 +765,19 @@ fun KasTransactionCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(42.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(if (isMasuk) DagangIncomeGreenContainer else DagangDebtRedContainer),
+                    .background(if (isMasuk) StatusGreenContainer else StatusRedContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = if (isMasuk) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                    imageVector = when {
+                        isMasuk -> Icons.Default.ArrowDownward
+                        transaction.refType == "EXPENSE" -> Icons.Default.ReceiptLong
+                        else -> Icons.Default.ArrowUpward
+                    },
                     contentDescription = null,
-                    tint = if (isMasuk) DagangIncomeGreen else DagangDebtRed,
+                    tint = if (isMasuk) StatusGreenText else StatusRedText,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -697,52 +785,84 @@ fun KasTransactionCard(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = tx.judul,
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        text = transaction.judul,
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    if (tx.refDocNumber != null) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Surface(
-                            color = NeutralSurfaceVariant,
-                            shape = RoundedCornerShape(4.dp)
-                        ) {
-                            Text(
-                                text = tx.refDocNumber,
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
-                            )
-                        }
+                    Text(
+                        text = (if (isMasuk) "+" else "-") + Formatters.formatRupiah(transaction.nominal),
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = if (isMasuk) StatusGreenText else StatusRedText
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = transaction.pihak,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = "${Formatters.formatTanggal(transaction.tanggal)} • ${transaction.metode}",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
+                    )
+                }
+
+                if (transaction.refDocNumber != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(6.dp)
+                    ) {
+                        Text(
+                            text = "Ref: ${transaction.refDocNumber}",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 10.sp
+                            ),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
                     }
                 }
 
-                Text(
-                    text = "${tx.pihak} • ${Formatters.formatTanggal(tx.tanggal)} (${tx.metode})",
-                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                if (tx.catatan.isNotBlank()) {
+                if (transaction.catatan.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = tx.catatan,
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp),
+                        text = "Catatan: ${transaction.catatan}",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
             }
-
-            Text(
-                text = "${if (isMasuk) "+" else "-"}${Formatters.formatRupiah(tx.nominal)}",
-                style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = if (isMasuk) DagangIncomeGreen else DagangDebtRed
-                )
-            )
         }
     }
 }
@@ -751,7 +871,7 @@ fun KasTransactionCard(
 @Composable
 fun AddPengeluaranDialog(
     onDismiss: () -> Unit,
-    onSave: (kategori: String, nominal: Double, keterangan: String) -> Unit
+    onSave: (kategori: String, nominal: Long, keterangan: String) -> Unit
 ) {
     var kategori by remember { mutableStateOf("Operasional") }
     var nominalText by remember { mutableStateOf("") }
@@ -762,8 +882,15 @@ fun AddPengeluaranDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
-            Text("Catat Pengeluaran Baru", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            Text(
+                "Catat Pengeluaran Baru",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
         },
         text = {
             Column(
@@ -775,19 +902,26 @@ fun AddPengeluaranDialog(
                 if (errorMessage != null) {
                     Text(
                         text = errorMessage!!,
-                        color = DagangDebtRed,
+                        color = StatusRedText,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
                     )
                 }
 
-                Text("Kategori Pengeluaran *", style = MaterialTheme.typography.labelMedium)
+                Text(
+                    "Kategori Pengeluaran *",
+                    style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onSurface)
+                )
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         categories.take(3).forEach { cat ->
                             FilterChip(
                                 selected = kategori == cat,
                                 onClick = { kategori = cat },
-                                label = { Text(cat, fontSize = 11.sp) }
+                                label = { Text(cat, fontSize = 11.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                )
                             )
                         }
                     }
@@ -796,7 +930,11 @@ fun AddPengeluaranDialog(
                             FilterChip(
                                 selected = kategori == cat,
                                 onClick = { kategori = cat },
-                                label = { Text(cat, fontSize = 11.sp) }
+                                label = { Text(cat, fontSize = 11.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                )
                             )
                         }
                     }
@@ -818,7 +956,7 @@ fun AddPengeluaranDialog(
                     value = keterangan,
                     onValueChange = { keterangan = it },
                     label = { Text("Keterangan *") },
-                    placeholder = { Text("Contoh: Pembayaran listrik gudang bulan September") },
+                    placeholder = { Text("Contoh: Pembayaran listrik gudang") },
                     maxLines = 2,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -829,7 +967,7 @@ fun AddPengeluaranDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    val nominal = nominalText.toDoubleOrNull() ?: 0.0
+                    val nominal = nominalText.toLongOrNull() ?: 0L
                     if (nominal <= 0) {
                         errorMessage = "Nominal pengeluaran harus lebih dari 0"
                         return@Button
@@ -840,7 +978,10 @@ fun AddPengeluaranDialog(
                     }
                     onSave(kategori, nominal, keterangan)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 modifier = Modifier.testTag("btn_save_pengeluaran")
             ) {
                 Text("Simpan")
@@ -854,4 +995,3 @@ fun AddPengeluaranDialog(
         shape = RoundedCornerShape(16.dp)
     )
 }
-

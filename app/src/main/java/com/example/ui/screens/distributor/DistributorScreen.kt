@@ -62,8 +62,8 @@ fun DistributorScreen(
                     editingDistributor = null
                     showFormDialog = true
                 },
-                containerColor = DagangBluePrimary,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.testTag("fab_add_distributor")
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Tambah Distributor")
@@ -86,7 +86,7 @@ fun DistributorScreen(
                     .testTag("search_distributor_input"),
                 placeholder = { Text("Cari nama distributor, kontak, atau alamat...") },
                 leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null, tint = NeutralTextSecondary)
+                    Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
@@ -175,7 +175,7 @@ fun DistributorCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
             .testTag("distributor_card_${distributor.id}")
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -188,7 +188,7 @@ fun DistributorCard(
                     text = distributor.nama,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = NeutralTextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -205,7 +205,7 @@ fun DistributorCard(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit Distributor",
-                            tint = DagangBluePrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -218,7 +218,7 @@ fun DistributorCard(
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
                             contentDescription = "Hapus Distributor",
-                            tint = DagangDebtRed,
+                            tint = StatusRedText,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -235,13 +235,13 @@ fun DistributorCard(
                     Icon(
                         imageVector = Icons.Default.Phone,
                         contentDescription = null,
-                        tint = NeutralTextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = distributor.noHp,
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
             }
@@ -254,13 +254,13 @@ fun DistributorCard(
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = null,
-                        tint = NeutralTextSecondary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = distributor.alamat,
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -283,10 +283,14 @@ fun DistributorFormDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Text(
                 text = if (initialDistributor == null) "Tambah Distributor Baru" else "Edit Distributor",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         text = {
@@ -299,7 +303,7 @@ fun DistributorFormDialog(
                 if (errorMessage != null) {
                     Text(
                         text = errorMessage!!,
-                        color = DagangDebtRed,
+                        color = StatusRedText,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
                     )
                 }
@@ -351,14 +355,22 @@ fun DistributorFormDialog(
                     }
                     onSave(nama.trim(), noHp.trim(), alamat.trim())
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 modifier = Modifier.testTag("btn_save_distributor")
             ) {
                 Text("Simpan")
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
                 Text("Batal")
             }
         },

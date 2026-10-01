@@ -7,16 +7,16 @@ data class ProdukWithStock(
     val isLowStock: Boolean
         get() = stok <= produk.stokMinimum
 
-    val totalNilaiAset: Double
-        get() = stok.coerceAtLeast(0) * produk.hargaDasar
+    val totalNilaiAset: Long
+        get() = stok.coerceAtLeast(0).toLong() * produk.hargaDasar
 }
 
 data class ItemPoWithProduct(
     val item: ItemPO,
     val produk: Produk?
 ) {
-    val subtotal: Double
-        get() = item.qty * item.hargaBeli
+    val subtotal: Long
+        get() = item.qty.toLong() * item.hargaBeli
 }
 
 data class PoWithDetails(
@@ -25,11 +25,11 @@ data class PoWithDetails(
     val items: List<ItemPoWithProduct>,
     val payments: List<Pembayaran>
 ) {
-    val totalPaid: Double
+    val totalPaid: Long
         get() = payments.sumOf { it.nominal }
 
-    val sisaHutang: Double
-        get() = (po.total - totalPaid).coerceAtLeast(0.0)
+    val sisaHutang: Long
+        get() = (po.total - totalPaid).coerceAtLeast(0L)
 
     val status: StatusPembayaran
         get() = when {
@@ -43,8 +43,11 @@ data class ItemSoWithProduct(
     val item: ItemSO,
     val produk: Produk?
 ) {
-    val subtotal: Double
-        get() = item.qty * item.harga
+    val subtotal: Long
+        get() = item.qty.toLong() * item.harga
+
+    val subtotalHpp: Long
+        get() = item.qty.toLong() * item.hppSaatJual
 }
 
 data class SoWithDetails(
@@ -53,16 +56,16 @@ data class SoWithDetails(
     val items: List<ItemSoWithProduct>,
     val payments: List<Pembayaran>
 ) {
-    val totalPaid: Double
+    val totalPaid: Long
         get() = payments.sumOf { it.nominal }
 
-    val sisaPiutang: Double
-        get() = (so.total - totalPaid).coerceAtLeast(0.0)
+    val sisaPiutang: Long
+        get() = (so.total - totalPaid).coerceAtLeast(0L)
 
-    val komisiNominal: Double
+    val komisiNominal: Long
         get() = if (customer != null && customer.persenKomisi > 0) {
-            (so.total * customer.persenKomisi) / 100.0
-        } else 0.0
+            Math.round((totalPaid.toDouble() * customer.persenKomisi) / 100.0)
+        } else 0L
 
     val status: StatusPembayaran
         get() = when {
@@ -78,14 +81,14 @@ data class CustomerDealItem(
 )
 
 data class DashboardSummary(
-    val totalPenjualan: Double = 0.0, // Omset
-    val totalHpp: Double = 0.0,
-    val totalLabaKotor: Double = 0.0,
-    val totalLabaBersih: Double = 0.0,
-    val totalPembelian: Double = 0.0,
-    val totalPiutang: Double = 0.0,
-    val totalHutang: Double = 0.0,
-    val totalPengeluaran: Double = 0.0,
+    val totalPenjualan: Long = 0L, // Omset
+    val totalHpp: Long = 0L,
+    val totalLabaKotor: Long = 0L,
+    val totalLabaBersih: Long = 0L,
+    val totalPembelian: Long = 0L,
+    val totalPiutang: Long = 0L,
+    val totalHutang: Long = 0L,
+    val totalPengeluaran: Long = 0L,
     val totalProduk: Int = 0,
     val totalProdukMenipis: Int = 0,
     val totalPelanggan: Int = 0,
@@ -95,19 +98,19 @@ data class DashboardSummary(
 data class CartItemPo(
     val produk: Produk,
     val qty: Int,
-    val hargaBeli: Double
+    val hargaBeli: Long
 ) {
-    val subtotal: Double get() = qty * hargaBeli
+    val subtotal: Long get() = qty.toLong() * hargaBeli
 }
 
 data class CartItemSo(
     val produk: Produk,
     val qty: Int,
-    val hargaJual: Double,
+    val hargaJual: Long,
     val isDealPrice: Boolean = false,
     val availableStock: Int
 ) {
-    val subtotal: Double get() = qty * hargaJual
+    val subtotal: Long get() = qty.toLong() * hargaJual
     val isInsufficientStock: Boolean get() = qty > availableStock
 }
 
@@ -125,18 +128,18 @@ data class KasTransaction(
     val refDocNumber: String? = null, // e.g. SO-20260925-001 or PO-20260920-001
     val refType: String? = null, // "SO", "PO", "EXPENSE"
     val refId: Long? = null,
-    val nominal: Double,
+    val nominal: Long,
     val metode: String, // Tunai, Transfer Bank, QRIS, dll.
     val catatan: String = ""
 )
 
 data class KasSummary(
-    val totalMasuk: Double = 0.0,
-    val totalKeluarDistributor: Double = 0.0,
-    val totalKeluarOperasional: Double = 0.0
+    val totalMasuk: Long = 0L,
+    val totalKeluarDistributor: Long = 0L,
+    val totalKeluarOperasional: Long = 0L
 ) {
-    val totalKeluar: Double get() = totalKeluarDistributor + totalKeluarOperasional
-    val saldoKas: Double get() = totalMasuk - totalKeluar
+    val totalKeluar: Long get() = totalKeluarDistributor + totalKeluarOperasional
+    val saldoKas: Long get() = totalMasuk - totalKeluar
 }
 
 data class PaymentTargetInfo(
@@ -144,9 +147,9 @@ data class PaymentTargetInfo(
     val refId: Long,
     val refNumber: String,
     val partyName: String,
-    val totalTransaction: Double,
-    val alreadyPaid: Double,
-    val remainingBalance: Double
+    val totalTransaction: Long,
+    val alreadyPaid: Long,
+    val remainingBalance: Long
 )
 
 enum class PeriodType(val label: String) {
@@ -158,14 +161,14 @@ enum class PeriodType(val label: String) {
 
 data class CustomerCommissionItem(
     val customer: Customer,
-    val totalSoTerbayar: Double,
+    val totalSoTerbayar: Long,
     val persenKomisi: Double,
-    val totalKomisi: Double
+    val totalKomisi: Long
 )
 
 data class ChartBarData(
     val label: String,
-    val amount: Double,
+    val amount: Long,
     val timestamp: Long
 )
 
@@ -174,20 +177,20 @@ data class LaporanKeuanganData(
     val periodLabel: String = "",
     val startDate: Long = 0L,
     val endDate: Long = 0L,
-    val omset: Double = 0.0,
-    val hpp: Double = 0.0,
-    val labaKotor: Double = 0.0,
-    val pengeluaranOperasional: Double = 0.0,
-    val totalKomisi: Double = 0.0,
-    val labaBersih: Double = 0.0,
+    val omset: Long = 0L,
+    val hpp: Long = 0L,
+    val labaKotor: Long = 0L,
+    val pengeluaranOperasional: Long = 0L,
+    val totalKomisi: Long = 0L,
+    val labaBersih: Long = 0L,
     val soCount: Int = 0,
     val commissionList: List<CustomerCommissionItem> = emptyList(),
     val chartData: List<ChartBarData> = emptyList()
 ) {
     val marginLabaKotorPersen: Double
-        get() = if (omset > 0) (labaKotor / omset) * 100.0 else 0.0
+        get() = if (omset > 0L) (labaKotor.toDouble() / omset.toDouble()) * 100.0 else 0.0
 
     val marginLabaBersihPersen: Double
-        get() = if (omset > 0) (labaBersih / omset) * 100.0 else 0.0
+        get() = if (omset > 0L) (labaBersih.toDouble() / omset.toDouble()) * 100.0 else 0.0
 }
 

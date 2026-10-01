@@ -65,8 +65,8 @@ fun SoListScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onNavigateToCreateSo,
-                containerColor = DagangIncomeGreen,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 icon = { Icon(Icons.Default.PointOfSale, contentDescription = null) },
                 text = { Text("Buat SO Baru") },
                 modifier = Modifier.testTag("fab_create_so")
@@ -89,7 +89,7 @@ fun SoListScreen(
                     .testTag("search_so_input"),
                 placeholder = { Text("Cari nomor SO atau nama pelanggan...") },
                 leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null, tint = NeutralTextSecondary)
+                    Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
@@ -116,8 +116,8 @@ fun SoListScreen(
                         onClick = { selectedStatusFilter = filter },
                         label = { Text(filter) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = DagangBluePrimary,
-                            selectedLabelColor = Color.White
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                         )
                     )
                 }
@@ -162,7 +162,7 @@ fun SoCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
             .testTag("so_card_${soDetail.so.id}")
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -176,18 +176,18 @@ fun SoCard(
                         text = soDetail.so.nomor,
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = NeutralTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                     Text(
                         text = "${soDetail.customer?.nama ?: "Umum"} • ${Formatters.formatTanggal(soDetail.so.tanggal)}",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
                 StatusBadge(status = soDetail.status)
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = NeutralOutline)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outline)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -197,13 +197,13 @@ fun SoCard(
                 Column {
                     Text(
                         text = "Total Penjualan (${soDetail.items.size} item)",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                     )
                     Text(
                         text = Formatters.formatRupiah(soDetail.so.total),
                         style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
-                            color = DagangBluePrimary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -212,13 +212,13 @@ fun SoCard(
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "Sisa Piutang",
-                            style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                         )
                         Text(
                             text = Formatters.formatRupiah(soDetail.sisaPiutang),
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = DagangDebtRed
+                                color = StatusRedText
                             )
                         )
                     }
@@ -227,14 +227,14 @@ fun SoCard(
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = DagangIncomeGreen,
+                            tint = StatusGreenText,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Lunas",
                             style = MaterialTheme.typography.labelMedium.copy(
-                                color = DagangIncomeGreen,
+                                color = StatusGreenText,
                                 fontWeight = FontWeight.Bold
                             )
                         )

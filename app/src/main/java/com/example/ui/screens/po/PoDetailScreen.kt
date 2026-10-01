@@ -54,7 +54,7 @@ fun PoDetailScreen(
                         onClick = { showDeleteConfirmDialog = true },
                         modifier = Modifier.testTag("btn_delete_po")
                     ) {
-                        Icon(Icons.Default.DeleteOutline, contentDescription = "Hapus PO", tint = Color.White)
+                        Icon(Icons.Default.DeleteOutline, contentDescription = "Hapus PO", tint = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             )
@@ -65,7 +65,7 @@ fun PoDetailScreen(
                     Surface(
                         color = MaterialTheme.colorScheme.surface,
                         shadowElevation = 8.dp,
-                        modifier = Modifier.border(1.dp, NeutralOutline)
+                        modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outline)
                     ) {
                         Row(
                             modifier = Modifier
@@ -75,16 +75,19 @@ fun PoDetailScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Sisa Hutang Belum Dibayar:", style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary))
+                                Text("Sisa Hutang Belum Dibayar:", style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
                                 Text(
                                     Formatters.formatRupiah(detail.sisaHutang),
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = DagangDebtRed)
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = StatusRedText)
                                 )
                             }
 
                             Button(
                                 onClick = { showPaymentDialog = true },
-                                colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
                                 shape = RoundedCornerShape(12.dp),
                                 modifier = Modifier.testTag("btn_bayar_po")
                             ) {
@@ -126,7 +129,7 @@ fun PoDetailScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(
@@ -136,7 +139,10 @@ fun PoDetailScreen(
                             ) {
                                 Text(
                                     text = detail.po.nomor,
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 )
                                 StatusBadge(status = detail.status)
                             }
@@ -144,25 +150,28 @@ fun PoDetailScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "Tanggal: ${Formatters.formatTanggal(detail.po.tanggal)}",
-                                style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
 
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = NeutralOutline)
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outline)
 
                             Text(
                                 text = "Distributor: ${detail.distributor?.nama ?: "-"}",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             )
                             if (detail.distributor?.noHp?.isNotBlank() == true) {
                                 Text(
                                     text = "Kontak: ${detail.distributor.noHp}",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 )
                             }
                             if (detail.distributor?.alamat?.isNotBlank() == true) {
                                 Text(
                                     text = "Alamat: ${detail.distributor.alamat}",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 )
                             }
                         }
@@ -177,27 +186,39 @@ fun PoDetailScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                     ) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Ringkasan Keuangan PO", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
+                            Text(
+                                "Ringkasan Keuangan PO",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
 
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Total Nilai PO:", style = MaterialTheme.typography.bodyMedium)
-                                Text(Formatters.formatRupiah(detail.po.total), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
+                                Text("Total Nilai PO:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    Formatters.formatRupiah(detail.po.total),
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                                )
                             }
 
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Total Terbayar:", style = MaterialTheme.typography.bodyMedium)
-                                Text(Formatters.formatRupiah(detail.totalPaid), style = MaterialTheme.typography.bodyMedium.copy(color = DagangIncomeGreen, fontWeight = FontWeight.Bold))
+                                Text("Total Terbayar:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                Text(
+                                    Formatters.formatRupiah(detail.totalPaid),
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = StatusGreenText, fontWeight = FontWeight.Bold)
+                                )
                             }
 
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Sisa Hutang:", style = MaterialTheme.typography.bodyMedium)
+                                Text("Sisa Hutang:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Text(
                                     Formatters.formatRupiah(detail.sisaHutang),
                                     style = MaterialTheme.typography.bodyMedium.copy(
-                                        color = if (detail.sisaHutang > 0) DagangDebtRed else DagangIncomeGreen,
+                                        color = if (detail.sisaHutang > 0) StatusRedText else StatusGreenText,
                                         fontWeight = FontWeight.Bold
                                     )
                                 )
@@ -210,7 +231,10 @@ fun PoDetailScreen(
                 item {
                     Text(
                         text = "Item Barang Masuk (${detail.items.size})",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
                 }
 
@@ -220,7 +244,7 @@ fun PoDetailScreen(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, NeutralOutline, RoundedCornerShape(12.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                     ) {
                         Row(
                             modifier = Modifier.padding(14.dp),
@@ -229,18 +253,21 @@ fun PoDetailScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = itemPo.produk?.nama ?: "Produk #${itemPo.item.produkId}",
-                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                    style = MaterialTheme.typography.titleSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 )
                                 Text(
                                     text = "${itemPo.item.qty} ${itemPo.produk?.satuan ?: "unit"} × ${Formatters.formatRupiah(itemPo.item.hargaBeli)}",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 )
                             }
                             Text(
                                 text = Formatters.formatRupiah(itemPo.subtotal),
                                 style = MaterialTheme.typography.titleSmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = DagangBluePrimary
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             )
                         }
@@ -256,11 +283,14 @@ fun PoDetailScreen(
                     ) {
                         Text(
                             text = "Riwayat Pembayaran Hutang (${detail.payments.size})",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         )
                         if (detail.sisaHutang > 0) {
                             TextButton(onClick = { showPaymentDialog = true }) {
-                                Text("+ Tambah Bayar")
+                                Text("+ Tambah Bayar", color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
@@ -273,11 +303,11 @@ fun PoDetailScreen(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(1.dp, NeutralOutline, RoundedCornerShape(12.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                         ) {
                             Text(
                                 text = "Belum ada pembayaran yang dicatat untuk PO ini.",
-                                style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
@@ -289,7 +319,7 @@ fun PoDetailScreen(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(1.dp, NeutralOutline, RoundedCornerShape(12.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                         ) {
                             Row(
                                 modifier = Modifier.padding(12.dp),
@@ -300,17 +330,17 @@ fun PoDetailScreen(
                                         text = Formatters.formatRupiah(payment.nominal),
                                         style = MaterialTheme.typography.titleSmall.copy(
                                             fontWeight = FontWeight.Bold,
-                                            color = DagangIncomeGreen
+                                            color = StatusGreenText
                                         )
                                     )
                                     Text(
                                         text = "${Formatters.formatTanggalWaktu(payment.tanggal)} • ${payment.metode}",
-                                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                     if (payment.catatan.isNotBlank()) {
                                         Text(
                                             text = "Catatan: ${payment.catatan}",
-                                            style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         )
                                     }
                                 }
@@ -322,7 +352,7 @@ fun PoDetailScreen(
                                     Icon(
                                         imageVector = Icons.Default.DeleteOutline,
                                         contentDescription = "Hapus Pembayaran",
-                                        tint = NeutralTextSecondary,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }

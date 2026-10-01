@@ -38,19 +38,20 @@ fun ExportReportDialog(
 
     AlertDialog(
         onDismissRequest = { if (!isExporting) onDismiss() },
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(DagangBlueContainer),
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.FileDownload,
                         contentDescription = null,
-                        tint = DagangBluePrimary,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -58,11 +59,17 @@ fun ExportReportDialog(
                 Column {
                     Text(
                         text = "Ekspor Laporan Finansial",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
                     Text(
                         text = laporan.periodLabel.ifBlank { "Laporan Usaha DagangKu" },
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
                     )
                 }
             }
@@ -76,7 +83,9 @@ fun ExportReportDialog(
             ) {
                 Text(
                     text = "Pilih format dokumen laporan untuk diunduh atau dibagikan ke WhatsApp, Email, atau Google Drive:",
-                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
 
                 // Option 1: PDF Format
@@ -85,8 +94,8 @@ fun ExportReportDialog(
                     subtitle = "Rangkuman rapi Laba/Rugi, margin, rincian komisi, dan daftar transaksi.",
                     badge = "Rekomendasi",
                     icon = Icons.Default.PictureAsPdf,
-                    accentColor = Color(0xFFDC2626),
-                    bgColor = Color(0xFFFEE2E2),
+                    accentColor = StatusRedText,
+                    bgColor = StatusRedContainer,
                     enabled = !isExporting,
                     testTag = "export_option_pdf",
                     onClick = {
@@ -117,8 +126,8 @@ fun ExportReportDialog(
                     subtitle = "Format data tabular (UTF-8 BOM) siap dibuka & dianalisis di Microsoft Excel.",
                     badge = "Excel Ready",
                     icon = Icons.Default.TableChart,
-                    accentColor = Color(0xFF16A34A),
-                    bgColor = Color(0xFFDCFCE7),
+                    accentColor = StatusGreenText,
+                    bgColor = StatusGreenContainer,
                     enabled = !isExporting,
                     testTag = "export_option_csv",
                     onClick = {
@@ -155,7 +164,7 @@ fun ExportReportDialog(
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
                             text = "Membuat berkas dokumen...",
-                            style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                     }
                 }
@@ -167,7 +176,7 @@ fun ExportReportDialog(
                 onClick = onDismiss,
                 enabled = !isExporting
             ) {
-                Text("Tutup")
+                Text("Tutup", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         shape = RoundedCornerShape(16.dp)
@@ -187,13 +196,13 @@ private fun ExportFormatOption(
     onClick: () -> Unit
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
             .testTag(testTag)
             .clickable(enabled = enabled) { onClick() }
-            .border(1.dp, NeutralOutline, RoundedCornerShape(12.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -225,7 +234,7 @@ private fun ExportFormatOption(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = NeutralTextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Surface(
                         color = bgColor,
@@ -247,7 +256,7 @@ private fun ExportFormatOption(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall.copy(
-                        color = NeutralTextSecondary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp,
                         lineHeight = 15.sp
                     )
@@ -258,7 +267,7 @@ private fun ExportFormatOption(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = NeutralTextSecondary,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
         }

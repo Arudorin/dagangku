@@ -29,13 +29,46 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Dashboard
-    val dashboardSummary: StateFlow<DashboardSummary> = repository.getDashboardSummary()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = DashboardSummary()
+    // Period Filter & Selection (Shared between Beranda Dashboard and Laporan Keuangan)
+    private val _selectedPeriodType = MutableStateFlow(PeriodType.BULANAN)
+    val selectedPeriodType: StateFlow<PeriodType> = _selectedPeriodType.asStateFlow()
+
+    private val _customDateRange = MutableStateFlow(
+        Pair(
+            com.example.util.Formatters.getStartOfMonth(),
+            com.example.util.Formatters.getEndOfMonth()
         )
+    )
+    val customDateRange: StateFlow<Pair<Long, Long>> = _customDateRange.asStateFlow()
+
+    // Dashboard - Always computes for the active period to match Laporan Keuangan exactly
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val dashboardSummary: StateFlow<DashboardSummary> = combine(
+        _selectedPeriodType,
+        _customDateRange
+    ) { periodType, customRange ->
+        when (periodType) {
+            PeriodType.HARIAN -> Pair(
+                com.example.util.Formatters.getStartOfDay(),
+                com.example.util.Formatters.getEndOfDay()
+            )
+            PeriodType.MINGGUAN -> Pair(
+                com.example.util.Formatters.getStartOfWeek(),
+                com.example.util.Formatters.getEndOfDay()
+            )
+            PeriodType.BULANAN -> Pair(
+                com.example.util.Formatters.getStartOfMonth(),
+                com.example.util.Formatters.getEndOfMonth()
+            )
+            PeriodType.CUSTOM -> customRange
+        }
+    }.flatMapLatest { (start, end) ->
+        repository.getDashboardSummary(start, end)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = DashboardSummary()
+    )
 
     // Produk & Stock
     val produkList: StateFlow<List<ProdukWithStock>> = repository.getProdukList()
@@ -101,17 +134,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
 
     // Laporan Keuangan (Step 3) Period Filter & Data
-    private val _selectedPeriodType = MutableStateFlow(PeriodType.BULANAN)
-    val selectedPeriodType: StateFlow<PeriodType> = _selectedPeriodType.asStateFlow()
-
-    private val _customDateRange = MutableStateFlow(
-        Pair(
-            com.example.util.Formatters.getStartOfMonth(),
-            com.example.util.Formatters.getEndOfMonth()
-        )
-    )
-    val customDateRange: StateFlow<Pair<Long, Long>> = _customDateRange.asStateFlow()
-
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val laporanKeuanganData: StateFlow<LaporanKeuanganData> = combine(
         _selectedPeriodType,
@@ -157,8 +179,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         id: Long = 0,
         nama: String,
         satuan: String,
-        hargaDasar: Double,
-        hargaJual: Double,
+        hargaDasar: Long,
+        hargaJual: Long,
         stokMinimum: Int,
         onSuccess: () -> Unit = {}
     ) {
@@ -284,7 +306,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun getCustomerDealPrices(customerId: Long): Flow<List<CustomerDealItem>> =
         repository.getHargaCustomerList(customerId)
 
-    fun setCustomerDealPrice(customerId: Long, produkId: Long, hargaDeal: Double) {
+    fun setCustomerDealPrice(customerId: Long, produkId: Long, hargaDeal: Long) {
         viewModelScope.launch {
             if (hargaDeal <= 0) {
                 _eventFlow.emit(UiEvent.ShowMessage("Harga deal harus lebih dari 0", isError = true))
@@ -302,7 +324,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    suspend fun getEffectivePriceForCustomer(customerId: Long, produkId: Long): Double {
+    suspend fun getEffectivePriceForCustomer(customerId: Long, produkId: Long): Long {
         return repository.getEffectivePrice(customerId, produkId)
     }
 
@@ -406,7 +428,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     soId = 0,
                     produkId = it.produk.id,
                     qty = it.qty,
-                    harga = it.hargaJual
+                    harga = it.hargaJual,
+                    hppSaatJual = it.produk.hargaDasar
                 )
             }
             val result = repository.createSO(so, soItems)
@@ -434,7 +457,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun recordPayment(
         tipe: String, // "CUSTOMER" or "DISTRIBUTOR"
         refId: Long,
-        nominal: Double,
+        nominal: Long,
         metode: String,
         catatan: String,
         tanggal: Long = System.currentTimeMillis(),
@@ -472,7 +495,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // ----------------------------------------------------
     fun addPengeluaran(
         kategori: String,
-        nominal: Double,
+        nominal: Long,
         keterangan: String,
         tanggal: Long = System.currentTimeMillis(),
         onSuccess: () -> Unit = {}

@@ -125,9 +125,11 @@ fun DagangKuApp(
                             icon = { Icon(tab.icon, contentDescription = tab.label) },
                             label = { Text(tab.label) },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = DagangBluePrimary,
-                                selectedTextColor = DagangBluePrimary,
-                                indicatorColor = DagangBluePrimary.copy(alpha = 0.12f)
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer
                             ),
                             modifier = Modifier.testTag(tab.testTag)
                         )

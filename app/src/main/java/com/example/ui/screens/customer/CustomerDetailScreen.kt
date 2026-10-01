@@ -56,7 +56,7 @@ fun CustomerDetailScreen(
 
     var showSetDealDialog by remember { mutableStateOf(false) }
     var selectedProductForDeal by remember { mutableStateOf<Produk?>(null) }
-    var existingDealPriceToEdit by remember { mutableStateOf<Double?>(null) }
+    var existingDealPriceToEdit by remember { mutableStateOf<Long?>(null) }
 
     var dealToDelete by remember { mutableStateOf<CustomerDealItem?>(null) }
 
@@ -75,8 +75,8 @@ fun CustomerDetailScreen(
                     existingDealPriceToEdit = null
                     showSetDealDialog = true
                 },
-                containerColor = DagangBluePrimary,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 icon = { Icon(Icons.Default.Sell, contentDescription = null) },
                 text = { Text("Atur Harga Deal") },
                 modifier = Modifier.testTag("btn_add_deal_price")
@@ -109,7 +109,7 @@ fun CustomerDetailScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -117,13 +117,13 @@ fun CustomerDetailScreen(
                                     modifier = Modifier
                                         .size(48.dp)
                                         .clip(CircleShape)
-                                        .background(DagangBlueContainer),
+                                        .background(MaterialTheme.colorScheme.primaryContainer),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Person,
                                         contentDescription = null,
-                                        tint = DagangBluePrimary,
+                                        tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(26.dp)
                                     )
                                 }
@@ -131,13 +131,16 @@ fun CustomerDetailScreen(
                                 Column {
                                     Text(
                                         text = customer.nama,
-                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
                                     )
                                     if (customer.persenKomisi > 0) {
                                         Text(
                                             text = "Komisi Penjualan: ${Formatters.formatPersen(customer.persenKomisi)}",
                                             style = MaterialTheme.typography.labelSmall.copy(
-                                                color = Color(0xFF7E22CE),
+                                                color = StatusPurpleText,
                                                 fontWeight = FontWeight.Bold
                                             )
                                         )
@@ -145,16 +148,16 @@ fun CustomerDetailScreen(
                                 }
                             }
 
-                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = NeutralOutline)
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outline)
 
                             if (customer.noHp.isNotBlank()) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(vertical = 2.dp)
                                 ) {
-                                    Icon(Icons.Default.Phone, contentDescription = null, tint = NeutralTextSecondary, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.Phone, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = customer.noHp, style = MaterialTheme.typography.bodyMedium)
+                                    Text(text = customer.noHp, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface))
                                 }
                             }
 
@@ -163,9 +166,9 @@ fun CustomerDetailScreen(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.padding(vertical = 2.dp)
                                 ) {
-                                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = NeutralTextSecondary, modifier = Modifier.size(16.dp))
+                                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = customer.alamat, style = MaterialTheme.typography.bodyMedium)
+                                    Text(text = customer.alamat, style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface))
                                 }
                             }
                         }
@@ -184,14 +187,14 @@ fun CustomerDetailScreen(
                                 text = "Harga Deal Khusus Pelanggan (${dealPrices.size})",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = NeutralTextPrimary
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Card(
                             shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = DagangBlueContainer.copy(alpha = 0.6f)),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -201,14 +204,14 @@ fun CustomerDetailScreen(
                                 Icon(
                                     imageVector = Icons.Default.Info,
                                     contentDescription = null,
-                                    tint = DagangBluePrimary,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = "Saat membuat SO untuk ${customer.nama}, harga produk otomatis memakai Harga Deal ini (tetap dapat diubah saat transaksi).",
                                     style = MaterialTheme.typography.bodySmall.copy(
-                                        color = DagangOnBlueContainer,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                                         lineHeight = 16.sp
                                     )
                                 )
@@ -225,7 +228,7 @@ fun CustomerDetailScreen(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .border(1.dp, NeutralOutline, RoundedCornerShape(12.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                         ) {
                             Column(
                                 modifier = Modifier
@@ -236,17 +239,20 @@ fun CustomerDetailScreen(
                                 Icon(
                                     imageVector = Icons.Default.LocalOffer,
                                     contentDescription = null,
-                                    tint = NeutralTextSecondary,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.size(36.dp)
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "Belum Ada Harga Khusus",
-                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                    style = MaterialTheme.typography.titleSmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 )
                                 Text(
                                     text = "Pelanggan ini saat ini menggunakan harga jual standar.",
-                                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 )
                             }
                         }
@@ -274,7 +280,7 @@ fun CustomerDetailScreen(
                         text = "Riwayat Pesanan Pelanggan (${customerSos.size})",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = NeutralTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 }
@@ -283,7 +289,7 @@ fun CustomerDetailScreen(
                     item {
                         Text(
                             text = "Belum ada pesanan penjualan untuk pelanggan ini.",
-                            style = MaterialTheme.typography.bodyMedium.copy(color = NeutralTextSecondary),
+                            style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                             modifier = Modifier.padding(vertical = 8.dp)
                         )
                     }
@@ -296,7 +302,7 @@ fun CustomerDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onNavigateToSoDetail(soDetail.so.id) }
-                                .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
                         ) {
                             Row(
                                 modifier = Modifier.padding(14.dp),
@@ -305,17 +311,20 @@ fun CustomerDetailScreen(
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = soDetail.so.nomor,
-                                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                        style = MaterialTheme.typography.titleSmall.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
                                     )
                                     Text(
                                         text = Formatters.formatTanggal(soDetail.so.tanggal),
-                                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                     Text(
                                         text = Formatters.formatRupiah(soDetail.so.total),
                                         style = MaterialTheme.typography.labelLarge.copy(
                                             fontWeight = FontWeight.Bold,
-                                            color = DagangBluePrimary
+                                            color = MaterialTheme.colorScheme.primary
                                         )
                                     )
                                 }
@@ -373,7 +382,7 @@ fun DealPriceCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -383,13 +392,13 @@ fun DealPriceCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0xFFFEF3C7)),
+                    .background(StatusAmberContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Sell,
                     contentDescription = null,
-                    tint = DagangWarningAmber,
+                    tint = StatusAmberText,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -397,7 +406,10 @@ fun DealPriceCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = dealItem.produk.nama,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -405,7 +417,7 @@ fun DealPriceCard(
                     Text(
                         text = Formatters.formatRupiah(dealItem.produk.hargaJual),
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = NeutralTextSecondary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textDecoration = TextDecoration.LineThrough
                         )
                     )
@@ -413,13 +425,13 @@ fun DealPriceCard(
                     Text(
                         text = Formatters.formatRupiah(dealItem.hargaCustomer.hargaDeal),
                         style = MaterialTheme.typography.titleSmall.copy(
-                            color = DagangBluePrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
                         )
                     )
                     Text(
                         text = " / ${dealItem.produk.satuan}",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
 
@@ -427,7 +439,7 @@ fun DealPriceCard(
                     Text(
                         text = "Hemat ${Formatters.formatRupiah(selisih)} dari harga normal",
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = DagangIncomeGreen,
+                            color = StatusGreenText,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -440,7 +452,7 @@ fun DealPriceCard(
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Edit Harga Deal",
-                        tint = DagangBluePrimary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -448,7 +460,7 @@ fun DealPriceCard(
                     Icon(
                         imageVector = Icons.Default.DeleteOutline,
                         contentDescription = "Hapus Harga Deal",
-                        tint = DagangDebtRed,
+                        tint = StatusRedText,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -463,15 +475,15 @@ fun SetDealPriceDialog(
     customerName: String,
     allProduk: List<Produk>,
     selectedProduk: Produk?,
-    initialDealPrice: Double?,
+    initialDealPrice: Long?,
     onDismiss: () -> Unit,
-    onSave: (produkId: Long, hargaDeal: Double) -> Unit
+    onSave: (produkId: Long, hargaDeal: Long) -> Unit
 ) {
     var chosenProduct by remember { mutableStateOf(selectedProduk ?: allProduk.firstOrNull()) }
     var dealPriceText by remember {
         mutableStateOf(
-            initialDealPrice?.toLong()?.toString()
-                ?: chosenProduct?.hargaJual?.toLong()?.toString()
+            initialDealPrice?.toString()
+                ?: chosenProduct?.hargaJual?.toString()
                 ?: ""
         )
     }
@@ -480,10 +492,14 @@ fun SetDealPriceDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Text(
                 text = "Atur Harga Khusus Deal",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         text = {
@@ -495,13 +511,16 @@ fun SetDealPriceDialog(
             ) {
                 Text(
                     text = "Pelanggan: $customerName",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 )
 
                 if (errorMessage != null) {
                     Text(
                         text = errorMessage!!,
-                        color = DagangDebtRed,
+                        color = StatusRedText,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
                     )
                 }
@@ -531,13 +550,13 @@ fun SetDealPriceDialog(
                                 text = {
                                     Column {
                                         Text(prod.nama, fontWeight = FontWeight.SemiBold)
-                                        Text("Harga Normal: ${Formatters.formatRupiah(prod.hargaJual)} / ${prod.satuan}", fontSize = 12.sp, color = NeutralTextSecondary)
+                                        Text("Harga Normal: ${Formatters.formatRupiah(prod.hargaJual)} / ${prod.satuan}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     }
                                 },
                                 onClick = {
                                     chosenProduct = prod
                                     if (initialDealPrice == null) {
-                                        dealPriceText = prod.hargaJual.toLong().toString()
+                                        dealPriceText = prod.hargaJual.toString()
                                     }
                                     expandedDropdown = false
                                 }
@@ -549,7 +568,7 @@ fun SetDealPriceDialog(
                 chosenProduct?.let { prod ->
                     Card(
                         shape = RoundedCornerShape(8.dp),
-                        colors = CardDefaults.cardColors(containerColor = NeutralSurfaceVariant),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -558,10 +577,13 @@ fun SetDealPriceDialog(
                                 .padding(10.dp),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Harga Standar:", style = MaterialTheme.typography.bodySmall)
+                            Text("Harga Standar:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
                                 "${Formatters.formatRupiah(prod.hargaJual)} / ${prod.satuan}",
-                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             )
                         }
                     }
@@ -589,21 +611,29 @@ fun SetDealPriceDialog(
                         errorMessage = "Pilih produk terlebih dahulu"
                         return@Button
                     }
-                    val price = dealPriceText.toDoubleOrNull() ?: 0.0
+                    val price = dealPriceText.toLongOrNull() ?: 0L
                     if (price <= 0) {
                         errorMessage = "Harga deal harus lebih dari 0"
                         return@Button
                     }
                     onSave(prod.id, price)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 modifier = Modifier.testTag("btn_save_deal_price")
             ) {
                 Text("Simpan Harga Deal")
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
                 Text("Batal")
             }
         },

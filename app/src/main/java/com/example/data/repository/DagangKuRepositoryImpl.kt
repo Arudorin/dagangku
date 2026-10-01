@@ -129,17 +129,17 @@ class DagangKuRepositoryImpl(
         }
     }
 
-    override suspend fun getEffectivePrice(customerId: Long, produkId: Long): Double = withContext(Dispatchers.IO) {
+    override suspend fun getEffectivePrice(customerId: Long, produkId: Long): Long = withContext(Dispatchers.IO) {
         val deal = hargaCustomerDao.getDeal(customerId, produkId)
         if (deal != null) {
             deal.hargaDeal
         } else {
             val prod = produkDao.getById(produkId)
-            prod?.hargaJual ?: 0.0
+            prod?.hargaJual ?: 0L
         }
     }
 
-    override suspend fun setCustomerDealPrice(customerId: Long, produkId: Long, hargaDeal: Double) = withContext(Dispatchers.IO) {
+    override suspend fun setCustomerDealPrice(customerId: Long, produkId: Long, hargaDeal: Long) = withContext(Dispatchers.IO) {
         hargaCustomerDao.insertOrUpdate(
             HargaCustomer(
                 customerId = customerId,
@@ -226,6 +226,7 @@ class DagangKuRepositoryImpl(
 
             // 1. Update hargaDasar of each product using Weighted Average Cost
             // Formula: ((stokLama * hargaDasarLama) + (qtyBeli * hargaBeli)) / (stokLama + qtyBeli)
+            // Round the weighted-average cost to the nearest rupiah
             for (item in items) {
                 val product = produkDao.getById(item.produkId)
                 if (product != null) {
@@ -233,7 +234,9 @@ class DagangKuRepositoryImpl(
                     val newHargaDasar = if (currentStock <= 0) {
                         item.hargaBeli
                     } else {
-                        ((currentStock * product.hargaDasar) + (item.qty * item.hargaBeli)) / (currentStock + item.qty)
+                        val totalCost = (currentStock.toLong() * product.hargaDasar) + (item.qty.toLong() * item.hargaBeli)
+                        val totalQty = currentStock + item.qty
+                        Math.round(totalCost.toDouble() / totalQty)
                     }
                     produkDao.updateHargaDasar(item.produkId, newHargaDasar)
                 }
@@ -344,11 +347,18 @@ class DagangKuRepositoryImpl(
                 }
             }
 
+            // Fill hppSaatJual with the product's current weighted-average hargaDasar
+            val itemsWithHpp = items.map { item ->
+                val prod = produkDao.getById(item.produkId)
+                val currentHargaDasar = prod?.hargaDasar ?: item.hppSaatJual
+                item.copy(hppSaatJual = currentHargaDasar)
+            }
+
             // Insert SO
             val soId = soDao.insert(so)
 
             // Insert SO Items (this decreases available stock dynamically)
-            val itemsWithSoId = items.map { it.copy(soId = soId) }
+            val itemsWithSoId = itemsWithHpp.map { it.copy(soId = soId) }
             itemSoDao.insertAll(itemsWithSoId)
 
             Result.success(soId)
@@ -482,7 +492,7 @@ class DagangKuRepositoryImpl(
     // ----------------------------------------------------
     // Dashboard Stats
     // ----------------------------------------------------
-    override fun getDashboardSummary(): Flow<DashboardSummary> {
+    override fun getDashboardSummary(startDate: Long, endDate: Long): Flow<DashboardSummary> {
         return combine(
             getSoList(),
             getPoList(),
@@ -490,18 +500,37 @@ class DagangKuRepositoryImpl(
             pengeluaranDao.getAll(),
             customerDao.getAll()
         ) { soList, poList, produkList, expenses, customers ->
-            val totalSales = soList.sumOf { it.so.total }
-            val totalPurchases = poList.sumOf { it.po.total }
+            val soInPeriod = if (startDate == 0L && endDate == Long.MAX_VALUE) {
+                soList
+            } else {
+                soList.filter { it.so.tanggal in startDate..endDate }
+            }
+            val poInPeriod = if (startDate == 0L && endDate == Long.MAX_VALUE) {
+                poList
+            } else {
+                poList.filter { it.po.tanggal in startDate..endDate }
+            }
+            val expensesInPeriod = if (startDate == 0L && endDate == Long.MAX_VALUE) {
+                expenses
+            } else {
+                expenses.filter { it.tanggal in startDate..endDate }
+            }
+
+            val totalSales = soInPeriod.sumOf { it.so.total }
+            val totalPurchases = poInPeriod.sumOf { it.po.total }
             val totalPiutang = soList.sumOf { it.sisaPiutang }
             val totalHutang = poList.sumOf { it.sisaHutang }
             val lowStockCount = produkList.count { it.isLowStock }
 
-            val totalHpp = soList.sumOf { soDetail ->
-                soDetail.items.sumOf { it.item.qty * (it.produk?.hargaDasar ?: 0.0) }
+            // All HPP calculations must use sum(qty x hppSaatJual), never Produk.hargaDasar
+            val totalHpp = soInPeriod.sumOf { soDetail ->
+                soDetail.items.sumOf { it.item.qty.toLong() * it.item.hppSaatJual }
             }
             val totalLabaKotor = totalSales - totalHpp
-            val totalExp = expenses.sumOf { it.nominal }
-            val totalKomisi = soList.sumOf { it.komisiNominal }
+            val totalExp = expensesInPeriod.sumOf { it.nominal }
+
+            // Commission = persenKomisi x total payments received for that SO (sum over all payments received)
+            val totalKomisi = soInPeriod.sumOf { it.komisiNominal }
             val totalLabaBersih = totalLabaKotor - totalExp - totalKomisi
 
             DashboardSummary(
@@ -535,41 +564,31 @@ class DagangKuRepositoryImpl(
             pengeluaranDao.getAll(),
             customerDao.getAll()
         ) { soDetailsList, custPayments, expenses, customers ->
-            val soMap = soDetailsList.associateBy { it.so.id }
-
             // 1. Omset in period
             val soInPeriod = soDetailsList.filter { it.so.tanggal in startDate..endDate }
             val omset = soInPeriod.sumOf { it.so.total }
 
-            // 2. HPP in period = sum(qty x hargaDasar)
+            // 2. HPP in period = sum(qty x hppSaatJual), never Produk.hargaDasar
             val hpp = soInPeriod.sumOf { soDetail ->
                 soDetail.items.sumOf { itemWithProd ->
-                    itemWithProd.item.qty * (itemWithProd.produk?.hargaDasar ?: 0.0)
+                    itemWithProd.item.qty.toLong() * itemWithProd.item.hppSaatJual
                 }
             }
 
             // 3. Laba Kotor = Omset - HPP
             val labaKotor = omset - hpp
 
-            // 4. Komisi per customer = persenKomisi x total SO yang sudah terbayar (from payments received in period)
-            val paymentsInPeriod = custPayments.filter { it.tanggal in startDate..endDate }
-            val custPaidMap = mutableMapOf<Long, Double>()
-            for (pay in paymentsInPeriod) {
-                val soDetail = soMap[pay.refId]
-                if (soDetail != null) {
-                    val custId = soDetail.so.customerId
-                    custPaidMap[custId] = (custPaidMap[custId] ?: 0.0) + pay.nominal
-                }
-            }
-
+            // 4. Komisi per customer = persenKomisi x total payments received for that SO
+            // Exactly matching Beranda dashboard: sum of it.komisiNominal
             val commissionList = mutableListOf<CustomerCommissionItem>()
-            var totalKomisi = 0.0
+            var totalKomisi = 0L
             for (cust in customers) {
-                val paidAmount = custPaidMap[cust.id] ?: 0.0
-                if (cust.persenKomisi > 0 || paidAmount > 0) {
-                    val komisi = if (cust.persenKomisi > 0) (paidAmount * cust.persenKomisi) / 100.0 else 0.0
+                val custSos = soInPeriod.filter { it.so.customerId == cust.id }
+                val paidAmount = custSos.sumOf { it.totalPaid }
+                val komisi = custSos.sumOf { it.komisiNominal }
+                if (cust.persenKomisi > 0 || paidAmount > 0L || komisi > 0L) {
                     totalKomisi += komisi
-                    if (paidAmount > 0 || cust.persenKomisi > 0) {
+                    if (paidAmount > 0L || cust.persenKomisi > 0) {
                         commissionList.add(
                             CustomerCommissionItem(
                                 customer = cust,
@@ -776,8 +795,8 @@ class DagangKuRepositoryImpl(
             Produk(
                 nama = "Beras Pandan Wangi 5 Kg",
                 satuan = "Sak",
-                hargaDasar = 68000.0,
-                hargaJual = 78000.0,
+                hargaDasar = 68000L,
+                hargaJual = 78000L,
                 stokMinimum = 10
             )
         )
@@ -785,8 +804,8 @@ class DagangKuRepositoryImpl(
             Produk(
                 nama = "Minyak Goreng SunCo 2L",
                 satuan = "Pcs",
-                hargaDasar = 32000.0,
-                hargaJual = 38000.0,
+                hargaDasar = 32000L,
+                hargaJual = 38000L,
                 stokMinimum = 15
             )
         )
@@ -794,8 +813,8 @@ class DagangKuRepositoryImpl(
             Produk(
                 nama = "Gula Pasir Gulaku 1 Kg",
                 satuan = "Kg",
-                hargaDasar = 14500.0,
-                hargaJual = 17500.0,
+                hargaDasar = 14500L,
+                hargaJual = 17500L,
                 stokMinimum = 20
             )
         )
@@ -803,8 +822,8 @@ class DagangKuRepositoryImpl(
             Produk(
                 nama = "Telur Ayam Negeri 1 Kg",
                 satuan = "Kg",
-                hargaDasar = 26000.0,
-                hargaJual = 30000.0,
+                hargaDasar = 26000L,
+                hargaJual = 30000L,
                 stokMinimum = 15
             )
         )
@@ -812,8 +831,8 @@ class DagangKuRepositoryImpl(
             Produk(
                 nama = "Indomie Goreng (Dus/40 Pcs)",
                 satuan = "Dus",
-                hargaDasar = 112000.0,
-                hargaJual = 125000.0,
+                hargaDasar = 112000L,
+                hargaJual = 125000L,
                 stokMinimum = 5
             )
         )
@@ -821,8 +840,8 @@ class DagangKuRepositoryImpl(
             Produk(
                 nama = "Tepung Segitiga Biru 1 Kg",
                 satuan = "Pcs",
-                hargaDasar = 10500.0,
-                hargaJual = 13000.0,
+                hargaDasar = 10500L,
+                hargaJual = 13000L,
                 stokMinimum = 10
             )
         )
@@ -833,14 +852,14 @@ class DagangKuRepositoryImpl(
             HargaCustomer(
                 customerId = cust1Id,
                 produkId = prodBerasId,
-                hargaDeal = 75000.0 // Default 78.000 -> Deal 75.000
+                hargaDeal = 75000L // Default 78.000 -> Deal 75.000
             )
         )
         hargaCustomerDao.insertOrUpdate(
             HargaCustomer(
                 customerId = cust1Id,
                 produkId = prodMinyakId,
-                hargaDeal = 36000.0 // Default 38.000 -> Deal 36.000
+                hargaDeal = 36000L // Default 38.000 -> Deal 36.000
             )
         )
         // RM Padang gets special deal on Telur & Minyak
@@ -848,21 +867,21 @@ class DagangKuRepositoryImpl(
             HargaCustomer(
                 customerId = cust3Id,
                 produkId = prodTelurId,
-                hargaDeal = 28500.0 // Default 30.000 -> Deal 28.500
+                hargaDeal = 28500L // Default 30.000 -> Deal 28.500
             )
         )
 
         // Seed Initial PO (Pembelian Stok Awal)
         val now = System.currentTimeMillis()
         val po1Items = listOf(
-            ItemPO(poId = 0, produkId = prodBerasId, qty = 50, hargaBeli = 68000.0),
-            ItemPO(poId = 0, produkId = prodMinyakId, qty = 60, hargaBeli = 32000.0),
-            ItemPO(poId = 0, produkId = prodGulaId, qty = 80, hargaBeli = 14500.0),
-            ItemPO(poId = 0, produkId = prodTelurId, qty = 40, hargaBeli = 26000.0),
-            ItemPO(poId = 0, produkId = prodIndomieId, qty = 25, hargaBeli = 112000.0),
-            ItemPO(poId = 0, produkId = prodTepungId, qty = 30, hargaBeli = 10500.0)
+            ItemPO(poId = 0, produkId = prodBerasId, qty = 50, hargaBeli = 68000L),
+            ItemPO(poId = 0, produkId = prodMinyakId, qty = 60, hargaBeli = 32000L),
+            ItemPO(poId = 0, produkId = prodGulaId, qty = 80, hargaBeli = 14500L),
+            ItemPO(poId = 0, produkId = prodTelurId, qty = 40, hargaBeli = 26000L),
+            ItemPO(poId = 0, produkId = prodIndomieId, qty = 25, hargaBeli = 112000L),
+            ItemPO(poId = 0, produkId = prodTepungId, qty = 30, hargaBeli = 10500L)
         )
-        val po1Total = po1Items.sumOf { it.qty * it.hargaBeli }
+        val po1Total = po1Items.sumOf { it.qty.toLong() * it.hargaBeli }
         val po1Id = poDao.insert(
             PO(
                 nomor = "PO-20260920-001",
@@ -878,7 +897,7 @@ class DagangKuRepositoryImpl(
             Pembayaran(
                 tipe = "DISTRIBUTOR",
                 refId = po1Id,
-                nominal = po1Total * 0.6,
+                nominal = Math.round(po1Total.toDouble() * 0.6),
                 tanggal = now - (9L * 24 * 3600 * 1000),
                 metode = "Transfer Bank",
                 catatan = "Pembayaran uang muka 60%"
@@ -887,10 +906,10 @@ class DagangKuRepositoryImpl(
 
         // Seed Initial SO (Penjualan)
         val so1Items = listOf(
-            ItemSO(soId = 0, produkId = prodBerasId, qty = 10, harga = 75000.0),
-            ItemSO(soId = 0, produkId = prodMinyakId, qty = 12, harga = 36000.0)
+            ItemSO(soId = 0, produkId = prodBerasId, qty = 10, harga = 75000L, hppSaatJual = 68000L),
+            ItemSO(soId = 0, produkId = prodMinyakId, qty = 12, harga = 36000L, hppSaatJual = 32000L)
         )
-        val so1Total = so1Items.sumOf { it.qty * it.harga }
+        val so1Total = so1Items.sumOf { it.qty.toLong() * it.harga }
         val so1Id = soDao.insert(
             SO(
                 nomor = "SO-20260925-001",
@@ -915,10 +934,10 @@ class DagangKuRepositoryImpl(
 
         // Seed SO 2 (Unpaid / Piutang)
         val so2Items = listOf(
-            ItemSO(soId = 0, produkId = prodTelurId, qty = 15, harga = 28500.0),
-            ItemSO(soId = 0, produkId = prodIndomieId, qty = 5, harga = 125000.0)
+            ItemSO(soId = 0, produkId = prodTelurId, qty = 15, harga = 28500L, hppSaatJual = 26000L),
+            ItemSO(soId = 0, produkId = prodIndomieId, qty = 5, harga = 125000L, hppSaatJual = 112000L)
         )
-        val so2Total = so2Items.sumOf { it.qty * it.harga }
+        val so2Total = so2Items.sumOf { it.qty.toLong() * it.harga }
         val so2Id = soDao.insert(
             SO(
                 nomor = "SO-20260928-002",
@@ -934,7 +953,7 @@ class DagangKuRepositoryImpl(
             Pembayaran(
                 tipe = "CUSTOMER",
                 refId = so2Id,
-                nominal = 500000.0,
+                nominal = 500000L,
                 tanggal = now - (1L * 24 * 3600 * 1000),
                 metode = "Tunai",
                 catatan = "DP Tunai"
@@ -945,7 +964,7 @@ class DagangKuRepositoryImpl(
         pengeluaranDao.insert(
             Pengeluaran(
                 kategori = "Listrik & Air",
-                nominal = 350000.0,
+                nominal = 350000L,
                 tanggal = now - (3L * 24 * 3600 * 1000),
                 keterangan = "Listrik gudang & toko bulan berjalan"
             )
@@ -953,7 +972,7 @@ class DagangKuRepositoryImpl(
         pengeluaranDao.insert(
             Pengeluaran(
                 kategori = "Transportasi",
-                nominal = 120000.0,
+                nominal = 120000L,
                 tanggal = now - (1L * 24 * 3600 * 1000),
                 keterangan = "BBM armada pickup antar pesanan"
             )

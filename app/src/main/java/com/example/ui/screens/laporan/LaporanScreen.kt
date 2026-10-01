@@ -1,6 +1,5 @@
 package com.example.ui.screens.laporan
 
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,7 +22,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
@@ -38,11 +36,9 @@ import com.example.data.model.LaporanKeuanganData
 import com.example.data.model.PeriodType
 import com.example.ui.MainViewModel
 import com.example.ui.components.DagangKuTopAppBar
-import com.example.ui.components.EmptyStateView
 import com.example.ui.components.ExportReportDialog
 import com.example.ui.theme.*
 import com.example.util.Formatters
-import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,7 +67,7 @@ fun LaporanScreen(
                         Icon(
                             imageVector = Icons.Default.FileDownload,
                             contentDescription = "Ekspor Laporan PDF & Excel",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -93,7 +89,7 @@ fun LaporanScreen(
                         text = "Pilih Periode Laporan:",
                         style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = NeutralTextSecondary
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
 
@@ -127,8 +123,8 @@ fun LaporanScreen(
                                     }
                                 },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = DagangBluePrimary,
-                                    selectedLabelColor = Color.White
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                                 ),
                                 modifier = Modifier.testTag("filter_period_${period.name.lowercase()}")
                             )
@@ -137,7 +133,7 @@ fun LaporanScreen(
 
                     // Display active date range details with quick change button
                     Surface(
-                        color = NeutralSurfaceVariant,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -152,13 +148,16 @@ fun LaporanScreen(
                                 Icon(
                                     imageVector = Icons.Default.CalendarToday,
                                     contentDescription = null,
-                                    tint = DagangBluePrimary,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = laporanData.periodLabel,
-                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold)
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 )
                             }
 
@@ -167,7 +166,7 @@ fun LaporanScreen(
                                     onClick = { showCustomDateDialog = true },
                                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                                 ) {
-                                    Text("Ubah Tanggal", fontSize = 12.sp)
+                                    Text("Ubah Tanggal", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                                 }
                             }
                         }
@@ -199,11 +198,17 @@ fun LaporanScreen(
                     Column {
                         Text(
                             text = "Rincian Komisi Pelanggan",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         )
                         Text(
                             text = "Dihitung dari total pembayaran SO yang diterima pada periode ini",
-                            style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 11.sp
+                            )
                         )
                     }
                 }
@@ -216,11 +221,11 @@ fun LaporanScreen(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, NeutralOutline, RoundedCornerShape(12.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                     ) {
                         Text(
                             text = "Belum ada komisi pelanggan yang terealisasi pada periode ini. Komisi otomatis dihitung saat ada pembayaran SO yang diterima.",
-                            style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                             modifier = Modifier.padding(16.dp)
                         )
                     }
@@ -240,7 +245,7 @@ fun LaporanScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { showExportDialog = true }
-                        .border(1.dp, DagangBluePrimary.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
                         .testTag("card_export_banner_laporan")
                 ) {
                     Row(
@@ -251,13 +256,13 @@ fun LaporanScreen(
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(DagangBlueContainer),
+                                .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.FileDownload,
                                 contentDescription = null,
-                                tint = DagangBluePrimary,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -267,12 +272,15 @@ fun LaporanScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Unduh / Bagikan Laporan",
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             )
                             Text(
                                 text = "Cetak dokumen resmi PDF (A4) atau ekspor data ke Excel (CSV).",
                                 style = MaterialTheme.typography.bodySmall.copy(
-                                    color = NeutralTextSecondary,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 11.sp
                                 )
                             )
@@ -280,7 +288,10 @@ fun LaporanScreen(
 
                         Button(
                             onClick = { showExportDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
                             shape = RoundedCornerShape(10.dp),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                         ) {
@@ -339,7 +350,7 @@ fun BreakdownCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
             .testTag("laporan_breakdown_card")
     ) {
         Column(
@@ -353,16 +364,19 @@ fun BreakdownCard(
             ) {
                 Text(
                     text = "Laporan Laba / Rugi (P&L)",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 )
                 Surface(
-                    color = DagangBlueContainer,
+                    color = MaterialTheme.colorScheme.primaryContainer,
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         text = "${laporan.soCount} Transaksi SO",
                         style = MaterialTheme.typography.labelSmall.copy(
-                            color = DagangOnBlueContainer,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             fontWeight = FontWeight.Bold
                         ),
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -370,7 +384,7 @@ fun BreakdownCard(
                 }
             }
 
-            HorizontalDivider(color = NeutralOutline)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 
             // 1. Omset Penjualan
             Row(
@@ -380,18 +394,24 @@ fun BreakdownCard(
                 Column {
                     Text(
                         text = "1. Omset Penjualan (Total SO)",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
                     Text(
                         text = "Total nilai pesanan penjualan periode ini",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
                     )
                 }
                 Text(
                     text = Formatters.formatRupiah(laporan.omset),
                     style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.Bold,
-                        color = DagangBluePrimary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 )
             }
@@ -404,25 +424,31 @@ fun BreakdownCard(
                 Column {
                     Text(
                         text = "2. HPP (Harga Pokok Penjualan)",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
                     Text(
                         text = "Σ (Qty Terjual × HPP Rata-Rata)",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
                     )
                 }
                 Text(
                     text = "-${Formatters.formatRupiah(laporan.hpp)}",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = NeutralTextPrimary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 )
             }
 
             // 3. Laba Kotor Result Bar
             Surface(
-                color = NeutralSurfaceVariant,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -436,18 +462,23 @@ fun BreakdownCard(
                     Column {
                         Text(
                             text = "= Laba Kotor (Gross Profit)",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         )
                         Text(
                             text = "Margin: ${Formatters.formatPersen(laporan.marginLabaKotorPersen)}",
-                            style = MaterialTheme.typography.labelSmall.copy(color = NeutralTextSecondary)
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         )
                     }
                     Text(
                         text = Formatters.formatRupiah(laporan.labaKotor),
                         style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
-                            color = if (laporan.labaKotor >= 0) DagangIncomeGreen else DagangDebtRed
+                            color = if (laporan.labaKotor >= 0) StatusGreenText else StatusRedText
                         )
                     )
                 }
@@ -461,18 +492,24 @@ fun BreakdownCard(
                 Column {
                     Text(
                         text = "3. Beban Operasional Usaha",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
                     Text(
                         text = "Listrik, sewa, gaji, transport, dll.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
                     )
                 }
                 Text(
                     text = "-${Formatters.formatRupiah(laporan.pengeluaranOperasional)}",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = DagangDebtRed
+                        color = StatusRedText
                     )
                 )
             }
@@ -485,27 +522,33 @@ fun BreakdownCard(
                 Column {
                     Text(
                         text = "4. Total Komisi Agen/Pelanggan",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold)
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
                     Text(
                         text = "Berdasarkan SO yang sudah terbayar",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
                     )
                 }
                 Text(
                     text = "-${Formatters.formatRupiah(laporan.totalKomisi)}",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF7E22CE)
+                        color = StatusPurpleText
                     )
                 )
             }
 
-            HorizontalDivider(color = NeutralOutline)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 
             // 6. Laba Bersih (Net Profit) Prominent Highlight Box
             Surface(
-                color = if (isNetProfitPositive) DagangIncomeGreenContainer else DagangDebtRedContainer,
+                color = if (isNetProfitPositive) StatusGreenContainer else StatusRedContainer,
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -521,14 +564,14 @@ fun BreakdownCard(
                             text = "LABA BERSIH (NET PROFIT)",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = if (isNetProfitPositive) DagangOnIncomeGreen else DagangOnDebtRed,
+                                color = if (isNetProfitPositive) StatusGreenText else StatusRedText,
                                 letterSpacing = 0.5.sp
                             )
                         )
                         Text(
                             text = "Margin Bersih: ${Formatters.formatPersen(laporan.marginLabaBersihPersen)}",
                             style = MaterialTheme.typography.bodySmall.copy(
-                                color = if (isNetProfitPositive) DagangOnIncomeGreen else DagangOnDebtRed,
+                                color = if (isNetProfitPositive) StatusGreenText else StatusRedText,
                                 fontSize = 11.sp
                             )
                         )
@@ -538,7 +581,7 @@ fun BreakdownCard(
                         text = Formatters.formatRupiah(laporan.labaBersih),
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
-                            color = if (isNetProfitPositive) DagangOnIncomeGreen else DagangOnDebtRed
+                            color = if (isNetProfitPositive) StatusGreenText else StatusRedText
                         )
                     )
                 }
@@ -553,11 +596,14 @@ fun BreakdownCard(
 @Composable
 fun OmsetChartCard(
     chartData: List<ChartBarData>,
-    totalOmset: Double,
+    totalOmset: Long,
     periodLabel: String,
     modifier: Modifier = Modifier
 ) {
     var selectedBarIndex by remember { mutableStateOf<Int?>(null) }
+    val outlineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val secondaryColor = MaterialTheme.colorScheme.secondary
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -565,7 +611,7 @@ fun OmsetChartCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
             .testTag("omset_chart_card")
     ) {
         Column(
@@ -580,12 +626,15 @@ fun OmsetChartCard(
                 Column {
                     Text(
                         text = "Grafik Tren Omset Penjualan",
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
                     Text(
                         text = "Total: ${Formatters.formatRupiah(totalOmset)}",
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = DagangBluePrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                     )
@@ -594,27 +643,29 @@ fun OmsetChartCard(
                 Icon(
                     imageVector = Icons.Default.BarChart,
                     contentDescription = null,
-                    tint = DagangBluePrimary
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
 
-            if (chartData.isEmpty() || chartData.all { it.amount == 0.0 }) {
+            if (chartData.isEmpty() || chartData.all { it.amount == 0L }) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(140.dp)
-                        .background(NeutralSurfaceVariant, RoundedCornerShape(12.dp)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "Belum ada transaksi penjualan pada grafik periode ini.",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
                         textAlign = TextAlign.Center
                     )
                 }
             } else {
                 val maxAmount = remember(chartData) {
-                    chartData.maxOfOrNull { it.amount }?.coerceAtLeast(1.0) ?: 1.0
+                    chartData.maxOfOrNull { it.amount }?.coerceAtLeast(1L) ?: 1L
                 }
 
                 // Interactive selected tooltip preview
@@ -622,7 +673,7 @@ fun OmsetChartCard(
                     if (idx in chartData.indices) {
                         val selected = chartData[idx]
                         Surface(
-                            color = DagangBlueContainer,
+                            color = MaterialTheme.colorScheme.primaryContainer,
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -634,13 +685,16 @@ fun OmsetChartCard(
                             ) {
                                 Text(
                                     text = selected.label.replace("\n", " "),
-                                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
                                 )
                                 Text(
                                     text = Formatters.formatRupiah(selected.amount),
                                     style = MaterialTheme.typography.bodySmall.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = DagangBluePrimary
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                 )
                             }
@@ -679,7 +733,7 @@ fun OmsetChartCard(
                         for (i in 1..lines) {
                             val y = (canvasHeight / lines) * i
                             drawLine(
-                                color = NeutralOutline,
+                                color = outlineColor,
                                 start = Offset(0f, y),
                                 end = Offset(canvasWidth, y),
                                 strokeWidth = 1.dp.toPx()
@@ -688,7 +742,7 @@ fun OmsetChartCard(
 
                         // Draw bars
                         chartData.forEachIndexed { index, barData ->
-                            val fraction = (barData.amount / maxAmount).toFloat().coerceIn(0.04f, 1f)
+                            val fraction = (barData.amount.toDouble() / maxAmount.toDouble()).toFloat().coerceIn(0.04f, 1f)
                             val barHeight = canvasHeight * fraction
                             val x = (index * slotWidth) + (slotWidth - barWidth) / 2f
                             val y = canvasHeight - barHeight
@@ -697,11 +751,11 @@ fun OmsetChartCard(
 
                             val brush = if (isSelected) {
                                 Brush.verticalGradient(
-                                    colors = listOf(DagangIncomeGreen, Color(0xFF22C55E))
+                                    colors = listOf(StatusGreenText, StatusGreenContainer)
                                 )
                             } else {
                                 Brush.verticalGradient(
-                                    colors = listOf(DagangBluePrimary, DagangBlueLight)
+                                    colors = listOf(primaryColor, secondaryColor)
                                 )
                             }
 
@@ -727,7 +781,7 @@ fun OmsetChartCard(
                                 text = bar.label.substringBefore("\n"),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontSize = 10.sp,
-                                    color = if (selectedBarIndex == index) DagangBluePrimary else NeutralTextSecondary,
+                                    color = if (selectedBarIndex == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = if (selectedBarIndex == index) FontWeight.Bold else FontWeight.Normal
                                 ),
                                 textAlign = TextAlign.Center,
@@ -742,7 +796,10 @@ fun OmsetChartCard(
 
                 Text(
                     text = "Ketuk salah satu batang grafik untuk melihat rincian omset per tanggal.",
-                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 11.sp
+                    ),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -766,7 +823,7 @@ fun CustomerCommissionCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Row(
@@ -779,13 +836,13 @@ fun CustomerCommissionCard(
                         modifier = Modifier
                             .size(38.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFFF3E8FF)),
+                            .background(StatusPurpleContainer),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = null,
-                            tint = Color(0xFF7E22CE),
+                            tint = StatusPurpleText,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -795,14 +852,17 @@ fun CustomerCommissionCard(
                     Column {
                         Text(
                             text = item.customer.nama,
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Tarif Komisi: ${Formatters.formatPersen(item.persenKomisi)}",
                             style = MaterialTheme.typography.bodySmall.copy(
-                                color = Color(0xFF7E22CE),
+                                color = StatusPurpleText,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 11.sp
                             )
@@ -813,19 +873,22 @@ fun CustomerCommissionCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "Hak Komisi",
-                        style = MaterialTheme.typography.labelSmall.copy(color = NeutralTextSecondary, fontSize = 10.sp)
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 10.sp
+                        )
                     )
                     Text(
                         text = Formatters.formatRupiah(item.totalKomisi),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF7E22CE)
+                            color = StatusPurpleText
                         )
                     )
                 }
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = NeutralOutline)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.outline)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -833,13 +896,13 @@ fun CustomerCommissionCard(
             ) {
                 Text(
                     text = "Total Pelunasan/Cicilan Masuk:",
-                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                 )
                 Text(
                     text = Formatters.formatRupiah(item.totalSoTerbayar),
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontWeight = FontWeight.Bold,
-                        color = DagangIncomeGreen
+                        color = StatusGreenText
                     )
                 )
             }
@@ -863,8 +926,15 @@ fun CustomDateRangeDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
-            Text("Pilih Rentang Tanggal", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            Text(
+                "Pilih Rentang Tanggal",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
         },
         text = {
             Column(
@@ -875,7 +945,9 @@ fun CustomDateRangeDialog(
             ) {
                 Text(
                     text = "Pilih periode cepat atau sesuaikan:",
-                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
 
                 val presets = listOf(
@@ -889,14 +961,14 @@ fun CustomDateRangeDialog(
                 presets.forEach { (days, label) ->
                     val isSelected = selectedPresetDays == days
                     Surface(
-                        color = if (isSelected) DagangBlueContainer else NeutralSurfaceVariant,
+                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { selectedPresetDays = days }
                             .border(
                                 1.dp,
-                                if (isSelected) DagangBluePrimary else Color.Transparent,
+                                if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                 RoundedCornerShape(10.dp)
                             )
                     ) {
@@ -909,11 +981,16 @@ fun CustomDateRangeDialog(
                                 text = label,
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) DagangOnBlueContainer else NeutralTextPrimary
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                                 )
                             )
                             if (isSelected) {
-                                Icon(Icons.Default.Check, contentDescription = null, tint = DagangBluePrimary, modifier = Modifier.size(18.dp))
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(18.dp)
+                                )
                             }
                         }
                     }
@@ -927,7 +1004,10 @@ fun CustomDateRangeDialog(
                     val end = Formatters.getEndOfDay(now)
                     onApply(start, end)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Text("Terapkan Periode")
             }

@@ -5,7 +5,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,11 +23,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.data.model.DashboardSummary
 import com.example.data.model.PoWithDetails
 import com.example.data.model.ProdukWithStock
 import com.example.data.model.SoWithDetails
-import com.example.data.model.StatusPembayaran
 import com.example.ui.MainViewModel
 import com.example.ui.components.DagangKuTopAppBar
 import com.example.ui.components.ExportReportDialog
@@ -56,6 +53,7 @@ fun HomeScreen(
     val poList by viewModel.poList.collectAsStateWithLifecycle()
     val produkList by viewModel.produkList.collectAsStateWithLifecycle()
     val laporanData by viewModel.laporanKeuanganData.collectAsStateWithLifecycle()
+    val selectedPeriod by viewModel.selectedPeriodType.collectAsStateWithLifecycle()
 
     var showExportDialog by remember { mutableStateOf(false) }
     var selectedTransactionTab by remember { mutableIntStateOf(0) } // 0: Semua, 1: SO, 2: PO
@@ -86,7 +84,7 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.FileDownload,
                             contentDescription = "Ekspor Laporan PDF & Excel",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -105,7 +103,7 @@ fun HomeScreen(
             item {
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = DagangBluePrimary),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(18.dp)) {
@@ -119,14 +117,14 @@ fun HomeScreen(
                                     text = "Halo, Juragan! \uD83D\uDC4B",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "Kelola omset, pantau laba bersih, piutang & stok toko secara presisi.",
                                     style = MaterialTheme.typography.bodySmall.copy(
-                                        color = Color.White.copy(alpha = 0.9f),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.85f),
                                         lineHeight = 16.sp
                                     )
                                 )
@@ -135,8 +133,8 @@ fun HomeScreen(
                             FilledTonalButton(
                                 onClick = { showExportDialog = true },
                                 colors = ButtonDefaults.filledTonalButtonColors(
-                                    containerColor = Color.White.copy(alpha = 0.2f),
-                                    contentColor = Color.White
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
                                 ),
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                                 shape = RoundedCornerShape(20.dp),
@@ -153,13 +151,53 @@ fun HomeScreen(
 
             // 2. CORE FINANCIAL METRICS: OMSET, LABA, PIUTANG, HUTANG
             item {
-                Text(
-                    text = "Ringkasan Finansial",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = NeutralTextPrimary
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Ringkasan Finansial",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
-                )
+                    Text(
+                        text = laporanData.periodLabel.ifBlank { "Bulan Ini" },
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.clickable { onNavigateToLaporan() }
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Quick Period Filter Chips for Beranda (matching Laporan exactly)
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(com.example.data.model.PeriodType.entries) { period ->
+                        FilterChip(
+                            selected = selectedPeriod == period,
+                            onClick = {
+                                if (period == com.example.data.model.PeriodType.CUSTOM) {
+                                    onNavigateToLaporan()
+                                } else {
+                                    viewModel.setPeriodType(period)
+                                }
+                            },
+                            label = { Text(period.label) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                            ),
+                            modifier = Modifier.testTag("home_filter_period_${period.name.lowercase()}")
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -171,10 +209,10 @@ fun HomeScreen(
                         StatCard(
                             title = "Omset Penjualan",
                             value = Formatters.formatRupiah(summary.totalPenjualan),
-                            subtitle = "${soList.size} Pesanan SO",
+                            subtitle = "${laporanData.soCount} Pesanan SO",
                             icon = Icons.Default.TrendingUp,
-                            iconBgColor = DagangIncomeGreen,
-                            accentColor = DagangIncomeGreen,
+                            iconBgColor = StatusGreenText,
+                            accentColor = StatusGreenText,
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("card_stat_omset"),
@@ -190,7 +228,7 @@ fun HomeScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable { onNavigateToLaporan() }
-                                .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                                 .testTag("card_stat_laba")
                         ) {
                             Column(modifier = Modifier.padding(14.dp)) {
@@ -201,22 +239,22 @@ fun HomeScreen(
                                 ) {
                                     Text(
                                         text = "Laba Bersih",
-                                        style = MaterialTheme.typography.labelMedium.copy(color = NeutralTextSecondary)
+                                        style = MaterialTheme.typography.labelMedium.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                     Box(
                                         modifier = Modifier
                                             .size(28.dp)
                                             .clip(CircleShape)
                                             .background(
-                                                if (isNetProfitPositive) DagangIncomeGreen.copy(alpha = 0.15f)
-                                                else DagangDebtRed.copy(alpha = 0.15f)
+                                                if (isNetProfitPositive) StatusGreenContainer
+                                                else StatusRedContainer
                                             ),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.MonetizationOn,
                                             contentDescription = null,
-                                            tint = if (isNetProfitPositive) DagangIncomeGreen else DagangDebtRed,
+                                            tint = if (isNetProfitPositive) StatusGreenText else StatusRedText,
                                             modifier = Modifier.size(16.dp)
                                         )
                                     }
@@ -228,7 +266,7 @@ fun HomeScreen(
                                     text = Formatters.formatRupiah(summary.totalLabaBersih),
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = if (isNetProfitPositive) DagangIncomeGreen else DagangDebtRed
+                                        color = if (isNetProfitPositive) StatusGreenText else StatusRedText
                                     ),
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
@@ -239,7 +277,7 @@ fun HomeScreen(
                                 Text(
                                     text = "Kotor: ${Formatters.formatRupiah(summary.totalLabaKotor)}",
                                     style = MaterialTheme.typography.bodySmall.copy(
-                                        color = NeutralTextSecondary,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         fontSize = 11.sp
                                     ),
                                     maxLines = 1,
@@ -259,8 +297,8 @@ fun HomeScreen(
                             value = Formatters.formatRupiah(summary.totalPiutang),
                             subtitle = "Tagihan SO tertunda",
                             icon = Icons.Default.ReceiptLong,
-                            iconBgColor = DagangWarningAmber,
-                            accentColor = if (summary.totalPiutang > 0) DagangDebtRed else DagangIncomeGreen,
+                            iconBgColor = StatusAmberText,
+                            accentColor = if (summary.totalPiutang > 0) StatusAmberText else StatusGreenText,
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("card_stat_piutang"),
@@ -272,8 +310,8 @@ fun HomeScreen(
                             value = Formatters.formatRupiah(summary.totalHutang),
                             subtitle = "Kewajiban PO tertunda",
                             icon = Icons.Default.AccountBalanceWallet,
-                            iconBgColor = DagangDebtRed,
-                            accentColor = if (summary.totalHutang > 0) DagangDebtRed else DagangIncomeGreen,
+                            iconBgColor = StatusRedText,
+                            accentColor = if (summary.totalHutang > 0) StatusRedText else StatusGreenText,
                             modifier = Modifier
                                 .weight(1f)
                                 .testTag("card_stat_hutang"),
@@ -289,7 +327,7 @@ fun HomeScreen(
                     text = "Aksi Cepat",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = NeutralTextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 )
                 Spacer(modifier = Modifier.height(10.dp))
@@ -301,7 +339,7 @@ fun HomeScreen(
                         title = "Buat SO",
                         subtitle = "Penjualan",
                         icon = Icons.Default.PointOfSale,
-                        color = DagangIncomeGreen,
+                        color = StatusGreenText,
                         modifier = Modifier.weight(1f),
                         onClick = onNavigateToCreateSo,
                         testTag = "quick_action_create_so"
@@ -310,7 +348,7 @@ fun HomeScreen(
                         title = "Buat PO",
                         subtitle = "Pembelian",
                         icon = Icons.Default.AddShoppingCart,
-                        color = DagangBluePrimary,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                         onClick = onNavigateToCreatePo,
                         testTag = "quick_action_create_po"
@@ -319,7 +357,7 @@ fun HomeScreen(
                         title = "Buku Kas",
                         subtitle = "Arus Uang",
                         icon = Icons.Default.AccountBalance,
-                        color = Color(0xFF0D9488),
+                        color = StatusAmberText,
                         modifier = Modifier.weight(1f),
                         onClick = onNavigateToKeuangan,
                         testTag = "quick_action_keuangan"
@@ -328,7 +366,7 @@ fun HomeScreen(
                         title = "Laporan",
                         subtitle = "P&L & Ekspor",
                         icon = Icons.Default.Assessment,
-                        color = Color(0xFF7C3AED),
+                        color = StatusPurpleText,
                         modifier = Modifier.weight(1f),
                         onClick = onNavigateToLaporan,
                         testTag = "quick_action_laporan"
@@ -348,19 +386,19 @@ fun HomeScreen(
                             text = "Status Stok Menipis",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = NeutralTextPrimary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         )
                         if (lowStockProducts.isNotEmpty()) {
                             Spacer(modifier = Modifier.width(8.dp))
                             Surface(
-                                color = DagangDebtRed,
+                                color = StatusRedContainer,
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Text(
                                     text = "${lowStockProducts.size} Menipis",
                                     style = MaterialTheme.typography.labelSmall.copy(
-                                        color = Color.White,
+                                        color = StatusRedText,
                                         fontWeight = FontWeight.Bold
                                     ),
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
@@ -370,7 +408,7 @@ fun HomeScreen(
                     }
 
                     TextButton(onClick = onNavigateToProduk) {
-                        Text("Lihat Semua Stok", fontSize = 12.sp)
+                        Text("Lihat Semua Stok", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }
@@ -379,7 +417,7 @@ fun HomeScreen(
                 item {
                     Card(
                         shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(containerColor = DagangIncomeGreenContainer),
+                        colors = CardDefaults.cardColors(containerColor = StatusGreenContainer),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onNavigateToProduk() }
@@ -393,13 +431,13 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .background(DagangIncomeGreen),
+                                    .background(StatusGreenText.copy(alpha = 0.2f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = StatusGreenText,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -409,13 +447,13 @@ fun HomeScreen(
                                     text = "Semua Stok Barang Aman \u2705",
                                     style = MaterialTheme.typography.titleSmall.copy(
                                         fontWeight = FontWeight.Bold,
-                                        color = DagangOnIncomeGreen
+                                        color = StatusGreenText
                                     )
                                 )
                                 Text(
                                     text = "Semua ${produkList.size} produk saat ini berada di atas batas minimum stok.",
                                     style = MaterialTheme.typography.bodySmall.copy(
-                                        color = DagangOnIncomeGreen,
+                                        color = StatusGreenText,
                                         fontSize = 12.sp
                                     )
                                 )
@@ -438,11 +476,11 @@ fun HomeScreen(
             item {
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = NeutralSurfaceVariant),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { showExportDialog = true }
-                        .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                         .testTag("banner_export_reports")
                 ) {
                     Row(
@@ -453,13 +491,13 @@ fun HomeScreen(
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(DagangBlueContainer),
+                                .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Description,
                                 contentDescription = null,
-                                tint = DagangBluePrimary,
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -469,12 +507,15 @@ fun HomeScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Ekspor Laporan PDF & Excel",
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             )
                             Text(
                                 text = "Unduh laporan laba/rugi, komisi agen, dan rekap SO/PO untuk arsip atau pembukuan.",
                                 style = MaterialTheme.typography.bodySmall.copy(
-                                    color = NeutralTextSecondary,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 11.sp
                                 )
                             )
@@ -483,7 +524,7 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.ChevronRight,
                             contentDescription = null,
-                            tint = DagangBluePrimary
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -496,7 +537,7 @@ fun HomeScreen(
                         text = "Transaksi Terakhir",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = NeutralTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
 
@@ -510,8 +551,8 @@ fun HomeScreen(
                             onClick = { selectedTransactionTab = 0 },
                             label = { Text("Semua") },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = DagangBluePrimary,
-                                selectedLabelColor = Color.White
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                             )
                         )
                         FilterChip(
@@ -519,8 +560,8 @@ fun HomeScreen(
                             onClick = { selectedTransactionTab = 1 },
                             label = { Text("Penjualan (SO)") },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = DagangIncomeGreen,
-                                selectedLabelColor = Color.White
+                                selectedContainerColor = StatusGreenContainer,
+                                selectedLabelColor = StatusGreenText
                             )
                         )
                         FilterChip(
@@ -528,8 +569,8 @@ fun HomeScreen(
                             onClick = { selectedTransactionTab = 2 },
                             label = { Text("Pembelian (PO)") },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = DagangBluePrimary,
-                                selectedLabelColor = Color.White
+                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         )
                     }
@@ -543,7 +584,7 @@ fun HomeScreen(
                         item {
                             Text(
                                 text = "Belum ada riwayat transaksi penjualan ataupun pembelian.",
-                                style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                                 modifier = Modifier.padding(vertical = 8.dp)
                             )
                         }
@@ -573,7 +614,7 @@ fun HomeScreen(
                         item {
                             Text(
                                 text = "Belum ada transaksi penjualan (SO).",
-                                style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                                 modifier = Modifier.padding(vertical = 8.dp)
                             )
                         }
@@ -594,7 +635,7 @@ fun HomeScreen(
                         item {
                             Text(
                                 text = "Belum ada transaksi pembelian (PO).",
-                                style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                                 modifier = Modifier.padding(vertical = 8.dp)
                             )
                         }
@@ -635,7 +676,7 @@ fun LowStockProductCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, DagangDebtRed.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+            .border(1.dp, StatusRedContainer, RoundedCornerShape(14.dp))
             .clickable { onProductDetail() }
             .testTag("low_stock_item_${productWithStock.produk.id}")
     ) {
@@ -647,13 +688,13 @@ fun LowStockProductCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(DagangDebtRedContainer),
+                    .background(StatusRedContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.WarningAmber,
                     contentDescription = null,
-                    tint = DagangDebtRed,
+                    tint = StatusRedText,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -663,7 +704,10 @@ fun LowStockProductCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = productWithStock.produk.nama,
-                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -672,25 +716,25 @@ fun LowStockProductCard(
                     Text(
                         text = "Tersedia: ${productWithStock.stok} ${productWithStock.produk.satuan}",
                         style = MaterialTheme.typography.bodySmall.copy(
-                            color = DagangDebtRed,
+                            color = StatusRedText,
                             fontWeight = FontWeight.Bold
                         )
                     )
                     Text(
                         text = " • Min: ${productWithStock.produk.stokMinimum}",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
 
                 Text(
                     text = "Harga Beli: ${Formatters.formatRupiah(productWithStock.produk.hargaDasar)}",
-                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                 )
             }
 
             OutlinedButton(
                 onClick = onRestockPo,
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = DagangBluePrimary),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
                 modifier = Modifier.testTag("btn_restock_po_${productWithStock.produk.id}")
@@ -720,7 +764,7 @@ fun QuickActionButton(
         modifier = modifier
             .clickable { onClick() }
             .testTag(testTag)
-            .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
     ) {
         Column(
             modifier = Modifier
@@ -732,7 +776,7 @@ fun QuickActionButton(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(color.copy(alpha = 0.12f)),
+                    .background(color.copy(alpha = 0.16f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -747,14 +791,15 @@ fun QuickActionButton(
                 text = title,
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurface
                 ),
                 maxLines = 1
             )
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodySmall.copy(
-                    color = NeutralTextSecondary,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp
                 ),
                 maxLines = 1
@@ -775,7 +820,7 @@ fun RecentSoCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
             .testTag("recent_so_${soDetail.so.id}")
     ) {
         Row(
@@ -786,13 +831,13 @@ fun RecentSoCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(DagangIncomeGreenContainer),
+                    .background(StatusGreenContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Receipt,
                     contentDescription = null,
-                    tint = DagangIncomeGreen,
+                    tint = StatusGreenText,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -800,13 +845,13 @@ fun RecentSoCard(
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
-                        color = DagangIncomeGreenContainer,
+                        color = StatusGreenContainer,
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
                             text = "SO",
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = DagangOnIncomeGreen,
+                                color = StatusGreenText,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 10.sp
                             ),
@@ -816,14 +861,17 @@ fun RecentSoCard(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = soDetail.so.nomor,
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
                 Text(
                     text = "${soDetail.customer?.nama ?: "Umum"} • ${Formatters.formatTanggal(soDetail.so.tanggal)}",
-                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -831,7 +879,7 @@ fun RecentSoCard(
                     text = Formatters.formatRupiah(soDetail.so.total),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = DagangIncomeGreen
+                        color = StatusGreenText
                     )
                 )
             }
@@ -852,7 +900,7 @@ fun RecentPoCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
             .testTag("recent_po_${poDetail.po.id}")
     ) {
         Row(
@@ -863,13 +911,13 @@ fun RecentPoCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(DagangBlueContainer),
+                    .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.LocalShipping,
                     contentDescription = null,
-                    tint = DagangBluePrimary,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -877,13 +925,13 @@ fun RecentPoCard(
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
-                        color = DagangBlueContainer,
+                        color = MaterialTheme.colorScheme.primaryContainer,
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
                             text = "PO",
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = DagangOnBlueContainer,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 10.sp
                             ),
@@ -893,14 +941,17 @@ fun RecentPoCard(
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = poDetail.po.nomor,
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
                 Text(
                     text = "${poDetail.distributor?.nama ?: "Distributor"} • ${Formatters.formatTanggal(poDetail.po.tanggal)}",
-                    style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary),
+                    style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -908,7 +959,7 @@ fun RecentPoCard(
                     text = Formatters.formatRupiah(poDetail.po.total),
                     style = MaterialTheme.typography.labelLarge.copy(
                         fontWeight = FontWeight.Bold,
-                        color = DagangBluePrimary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 )
             }

@@ -75,8 +75,8 @@ fun ProdukScreen(
                     editingProduct = null
                     showFormDialog = true
                 },
-                containerColor = DagangBluePrimary,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.testTag("fab_add_produk")
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Tambah Produk")
@@ -99,7 +99,7 @@ fun ProdukScreen(
                     .testTag("search_produk_input"),
                 placeholder = { Text("Cari produk atau satuan...") },
                 leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null, tint = NeutralTextSecondary)
+                    Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
@@ -111,8 +111,8 @@ fun ProdukScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = DagangBluePrimary,
-                    unfocusedBorderColor = NeutralOutline
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
                 )
             )
 
@@ -130,8 +130,8 @@ fun ProdukScreen(
                         onClick = { selectedFilter = filter },
                         label = { Text(filter) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = DagangBluePrimary,
-                            selectedLabelColor = Color.White
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                         )
                     )
                 }
@@ -222,7 +222,7 @@ fun ProdukCard(
             .fillMaxWidth()
             .border(
                 width = if (item.isLowStock) 1.5.dp else 1.dp,
-                color = if (item.isLowStock) DagangWarningAmber else NeutralOutline,
+                color = if (item.isLowStock) StatusAmberText else MaterialTheme.colorScheme.outline,
                 shape = RoundedCornerShape(16.dp)
             )
             .testTag("produk_card_${item.produk.id}")
@@ -238,7 +238,7 @@ fun ProdukCard(
                         text = item.produk.nama,
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = NeutralTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         ),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
@@ -261,7 +261,7 @@ fun ProdukCard(
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit Produk",
-                            tint = DagangBluePrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -274,7 +274,7 @@ fun ProdukCard(
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
                             contentDescription = "Hapus Produk",
-                            tint = DagangDebtRed,
+                            tint = StatusRedText,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -283,7 +283,7 @@ fun ProdukCard(
 
             HorizontalDivider(
                 modifier = Modifier.padding(vertical = 12.dp),
-                color = NeutralOutline
+                color = MaterialTheme.colorScheme.outline
             )
 
             // Price & Margin Grid
@@ -294,13 +294,13 @@ fun ProdukCard(
                 Column {
                     Text(
                         text = "Harga Dasar (HPP)",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                     )
                     Text(
                         text = Formatters.formatRupiah(item.produk.hargaDasar),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.SemiBold,
-                            color = NeutralTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                 }
@@ -308,13 +308,13 @@ fun ProdukCard(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Harga Jual",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                     )
                     Text(
                         text = Formatters.formatRupiah(item.produk.hargaJual),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = DagangBluePrimary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -322,13 +322,13 @@ fun ProdukCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "Margin Keuntungan",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                     )
                     Text(
                         text = "+${Formatters.formatRupiah(margin)}",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = DagangIncomeGreen
+                            color = StatusGreenText
                         )
                     )
                 }
@@ -341,12 +341,12 @@ fun ProdukCard(
 fun ProdukFormDialog(
     initialProduk: Produk?,
     onDismiss: () -> Unit,
-    onSave: (nama: String, satuan: String, hargaDasar: Double, hargaJual: Double, stokMin: Int) -> Unit
+    onSave: (nama: String, satuan: String, hargaDasar: Long, hargaJual: Long, stokMin: Int) -> Unit
 ) {
     var nama by remember { mutableStateOf(initialProduk?.nama ?: "") }
     var satuan by remember { mutableStateOf(initialProduk?.satuan ?: "Pcs") }
-    var hargaDasarText by remember { mutableStateOf(initialProduk?.hargaDasar?.toLong()?.toString() ?: "") }
-    var hargaJualText by remember { mutableStateOf(initialProduk?.hargaJual?.toLong()?.toString() ?: "") }
+    var hargaDasarText by remember { mutableStateOf(initialProduk?.hargaDasar?.toString() ?: "") }
+    var hargaJualText by remember { mutableStateOf(initialProduk?.hargaJual?.toString() ?: "") }
     var stokMinText by remember { mutableStateOf(initialProduk?.stokMinimum?.toString() ?: "5") }
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
@@ -355,10 +355,14 @@ fun ProdukFormDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Text(
                 text = if (initialProduk == null) "Tambah Produk Baru" else "Edit Produk",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
         },
         text = {
@@ -371,7 +375,7 @@ fun ProdukFormDialog(
                 if (errorMessage != null) {
                     Text(
                         text = errorMessage!!,
-                        color = DagangDebtRed,
+                        color = StatusRedText,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
                     )
                 }
@@ -465,20 +469,28 @@ fun ProdukFormDialog(
                         errorMessage = "Satuan produk wajib diisi"
                         return@Button
                     }
-                    val hargaJual = hargaJualText.toDoubleOrNull() ?: 0.0
-                    val hargaDasar = hargaDasarText.toDoubleOrNull() ?: 0.0
+                    val hargaJual = hargaJualText.toLongOrNull() ?: 0L
+                    val hargaDasar = hargaDasarText.toLongOrNull() ?: 0L
                     val stokMin = stokMinText.toIntOrNull() ?: 5
 
                     onSave(nama.trim(), satuan.trim(), hargaDasar, hargaJual, stokMin)
                 },
-                colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 modifier = Modifier.testTag("btn_save_produk")
             ) {
                 Text("Simpan")
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
                 Text("Batal")
             }
         },

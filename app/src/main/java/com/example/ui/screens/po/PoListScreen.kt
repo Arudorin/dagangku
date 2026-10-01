@@ -65,8 +65,8 @@ fun PoListScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onNavigateToCreatePo,
-                containerColor = DagangBluePrimary,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 icon = { Icon(Icons.Default.AddShoppingCart, contentDescription = null) },
                 text = { Text("Buat PO Baru") },
                 modifier = Modifier.testTag("fab_create_po")
@@ -89,7 +89,7 @@ fun PoListScreen(
                     .testTag("search_po_input"),
                 placeholder = { Text("Cari nomor PO atau nama distributor...") },
                 leadingIcon = {
-                    Icon(Icons.Default.Search, contentDescription = null, tint = NeutralTextSecondary)
+                    Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
@@ -116,8 +116,8 @@ fun PoListScreen(
                         onClick = { selectedStatusFilter = filter },
                         label = { Text(filter) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = DagangBluePrimary,
-                            selectedLabelColor = Color.White
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                         )
                     )
                 }
@@ -162,7 +162,7 @@ fun PoCard(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
             .testTag("po_card_${poDetail.po.id}")
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -176,18 +176,18 @@ fun PoCard(
                         text = poDetail.po.nomor,
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = NeutralTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                     Text(
                         text = "${poDetail.distributor?.nama ?: "Distributor"} • ${Formatters.formatTanggal(poDetail.po.tanggal)}",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
                 StatusBadge(status = poDetail.status)
             }
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = NeutralOutline)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.outline)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -197,13 +197,13 @@ fun PoCard(
                 Column {
                     Text(
                         text = "Total Pembelian (${poDetail.items.size} item)",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                     )
                     Text(
                         text = Formatters.formatRupiah(poDetail.po.total),
                         style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
-                            color = DagangBluePrimary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
@@ -212,13 +212,13 @@ fun PoCard(
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
                             text = "Sisa Hutang",
-                            style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary, fontSize = 11.sp)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                         )
                         Text(
                             text = Formatters.formatRupiah(poDetail.sisaHutang),
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = DagangDebtRed
+                                color = StatusRedText
                             )
                         )
                     }
@@ -227,14 +227,14 @@ fun PoCard(
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
-                            tint = DagangIncomeGreen,
+                            tint = StatusGreenText,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "Lunas",
                             style = MaterialTheme.typography.labelMedium.copy(
-                                color = DagangIncomeGreen,
+                                color = StatusGreenText,
                                 fontWeight = FontWeight.Bold
                             )
                         )

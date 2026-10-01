@@ -11,8 +11,8 @@ data class Produk(
     val id: Long = 0,
     val nama: String,
     val satuan: String, // Pcs, Kg, Dus, Karton, Btl, dll.
-    val hargaDasar: Double, // HPP / Weighted average cost
-    val hargaJual: Double,
+    val hargaDasar: Long, // HPP / Weighted average cost
+    val hargaJual: Long,
     val stokMinimum: Int = 5
 )
 
@@ -46,7 +46,7 @@ data class HargaCustomer(
     val id: Long = 0,
     val customerId: Long,
     val produkId: Long,
-    val hargaDeal: Double
+    val hargaDeal: Long
 )
 
 @Entity(tableName = "po")
@@ -56,7 +56,7 @@ data class PO(
     val nomor: String,
     val distributorId: Long,
     val tanggal: Long, // Epoch millis
-    val total: Double
+    val total: Long
 )
 
 @Entity(
@@ -69,7 +69,7 @@ data class ItemPO(
     val poId: Long,
     val produkId: Long,
     val qty: Int,
-    val hargaBeli: Double
+    val hargaBeli: Long
 )
 
 @Entity(tableName = "so")
@@ -79,7 +79,7 @@ data class SO(
     val nomor: String,
     val customerId: Long,
     val tanggal: Long, // Epoch millis
-    val total: Double
+    val total: Long
 )
 
 @Entity(
@@ -92,7 +92,8 @@ data class ItemSO(
     val soId: Long,
     val produkId: Long,
     val qty: Int,
-    val harga: Double
+    val harga: Long,
+    val hppSaatJual: Long = 0L
 )
 
 @Entity(
@@ -104,7 +105,7 @@ data class Pembayaran(
     val id: Long = 0,
     val tipe: String, // "CUSTOMER" (SO) atau "DISTRIBUTOR" (PO)
     val refId: Long,  // id dari SO atau PO
-    val nominal: Double,
+    val nominal: Long,
     val tanggal: Long,
     val metode: String, // Tunai, Transfer Bank, QRIS, Giro
     val catatan: String = ""
@@ -115,7 +116,7 @@ data class Pengeluaran(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
     val kategori: String, // Operasional, Gaji, Sewa, Listrik & Air, Transport, Lain-lain
-    val nominal: Double,
+    val nominal: Long,
     val tanggal: Long,
     val keterangan: String
 )

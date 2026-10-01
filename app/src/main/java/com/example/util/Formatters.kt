@@ -11,6 +11,16 @@ object Formatters {
 
     private val indonesianLocale = Locale("id", "ID")
 
+    fun formatRupiah(amount: Long): String {
+        val symbols = DecimalFormatSymbols(indonesianLocale).apply {
+            groupingSeparator = '.'
+            decimalSeparator = ','
+        }
+        val formatter = DecimalFormat("#,###", symbols)
+        val formattedNumber = formatter.format(amount)
+        return "Rp $formattedNumber"
+    }
+
     fun formatRupiah(amount: Double): String {
         val symbols = DecimalFormatSymbols(indonesianLocale).apply {
             groupingSeparator = '.'

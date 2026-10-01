@@ -91,12 +91,12 @@ fun CreateSoScreen(
             Surface(
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
-                modifier = Modifier.border(1.dp, NeutralOutline)
+                modifier = Modifier.border(1.dp, MaterialTheme.colorScheme.outline)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     if (hasInsufficientStock) {
                         Surface(
-                            color = DagangDebtRedContainer,
+                            color = StatusRedContainer,
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -104,7 +104,7 @@ fun CreateSoScreen(
                         ) {
                             Text(
                                 text = "⚠️ Transaksi ditolak: Ada item dengan jumlah melebihi stok tersedia!",
-                                color = DagangOnDebtRed,
+                                color = StatusRedText,
                                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                                 modifier = Modifier.padding(8.dp)
                             )
@@ -119,20 +119,20 @@ fun CreateSoScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Total Penjualan",
-                                style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                             )
                             Text(
                                 text = Formatters.formatRupiah(totalPenjualan),
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = DagangBluePrimary,
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontSize = 18.sp
                                 )
                             )
                             if (komisiEstimasi > 0) {
                                 Text(
                                     text = "Estimasi Komisi: ${Formatters.formatRupiah(komisiEstimasi)} (${Formatters.formatPersen(selectedCustomer?.persenKomisi ?: 0.0)})",
-                                    style = MaterialTheme.typography.labelSmall.copy(color = Color(0xFF7E22CE), fontWeight = FontWeight.Bold)
+                                    style = MaterialTheme.typography.labelSmall.copy(color = StatusPurpleText, fontWeight = FontWeight.Bold)
                                 )
                             }
                         }
@@ -161,7 +161,10 @@ fun CreateSoScreen(
                                 )
                             },
                             enabled = !hasInsufficientStock && cartItems.isNotEmpty(),
-                            colors = ButtonDefaults.buttonColors(containerColor = DagangIncomeGreen),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ),
                             shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.testTag("btn_submit_so")
                         ) {
@@ -186,7 +189,7 @@ fun CreateSoScreen(
             if (validationError != null) {
                 item {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = DagangDebtRedContainer),
+                        colors = CardDefaults.cardColors(containerColor = StatusRedContainer),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -194,11 +197,11 @@ fun CreateSoScreen(
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = DagangDebtRed)
+                            Icon(Icons.Default.ErrorOutline, contentDescription = null, tint = StatusRedText)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = validationError!!,
-                                style = MaterialTheme.typography.bodyMedium.copy(color = DagangOnDebtRed)
+                                style = MaterialTheme.typography.bodyMedium.copy(color = StatusRedText)
                             )
                         }
                     }
@@ -209,18 +212,18 @@ fun CreateSoScreen(
             item {
                 Card(
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = DagangBlueContainer.copy(alpha = 0.6f)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Info, contentDescription = null, tint = DagangBluePrimary, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Harga otomatis menggunakan Harga Deal Pelanggan jika ada (tetap dapat diubah). SO tidak dapat disimpan bila stok kurang.",
-                            style = MaterialTheme.typography.bodySmall.copy(color = DagangOnBlueContainer, lineHeight = 16.sp)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onPrimaryContainer, lineHeight = 16.sp)
                         )
                     }
                 }
@@ -234,7 +237,7 @@ fun CreateSoScreen(
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, NeutralOutline, RoundedCornerShape(16.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -242,7 +245,10 @@ fun CreateSoScreen(
                     ) {
                         Text(
                             text = "Informasi Dokumen SO",
-                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         )
 
                         OutlinedTextField(
@@ -284,7 +290,7 @@ fun CreateSoScreen(
                                             Column {
                                                 Text(cust.nama, fontWeight = FontWeight.SemiBold)
                                                 if (cust.persenKomisi > 0) {
-                                                    Text("Komisi: ${Formatters.formatPersen(cust.persenKomisi)}", fontSize = 11.sp, color = Color(0xFF7E22CE))
+                                                    Text("Komisi: ${Formatters.formatPersen(cust.persenKomisi)}", fontSize = 11.sp, color = StatusPurpleText)
                                                 }
                                             }
                                         },
@@ -305,10 +311,10 @@ fun CreateSoScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Tanggal Dokumen:", style = MaterialTheme.typography.bodyMedium)
+                            Text("Tanggal Dokumen:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
                                 text = Formatters.formatTanggal(tanggal),
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                             )
                         }
                     }
@@ -326,13 +332,16 @@ fun CreateSoScreen(
                         text = "Item Barang Penjualan (${cartItems.size})",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = NeutralTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
 
                     Button(
                         onClick = { showAddItemDialog = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
                         shape = RoundedCornerShape(10.dp),
                         modifier = Modifier.testTag("btn_add_item_so")
                     ) {
@@ -351,7 +360,7 @@ fun CreateSoScreen(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, NeutralOutline, RoundedCornerShape(12.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
                     ) {
                         Column(
                             modifier = Modifier
@@ -359,10 +368,10 @@ fun CreateSoScreen(
                                 .padding(24.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(Icons.Default.ShoppingBag, contentDescription = null, tint = NeutralTextSecondary, modifier = Modifier.size(36.dp))
+                            Icon(Icons.Default.ShoppingBag, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(36.dp))
                             Spacer(modifier = Modifier.height(8.dp))
-                            Text("Belum ada produk yang dijual", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold))
-                            Text("Ketuk tombol 'Tambah Item' untuk memilih produk yang dijual.", style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary))
+                            Text("Belum ada produk yang dijual", style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface))
+                            Text("Ketuk tombol 'Tambah Item' untuk memilih produk yang dijual.", style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant))
                         }
                     }
                 }
@@ -371,14 +380,14 @@ fun CreateSoScreen(
                     Card(
                         shape = RoundedCornerShape(14.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (item.isInsufficientStock) DagangDebtRedContainer else MaterialTheme.colorScheme.surface
+                            containerColor = if (item.isInsufficientStock) StatusRedContainer else MaterialTheme.colorScheme.surface
                         ),
                         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .border(
                                 1.dp,
-                                if (item.isInsufficientStock) DagangDebtRed else NeutralOutline,
+                                if (item.isInsufficientStock) StatusRedText else MaterialTheme.colorScheme.outline,
                                 RoundedCornerShape(14.dp)
                             )
                     ) {
@@ -391,20 +400,23 @@ fun CreateSoScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
                                             text = item.produk.nama,
-                                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                            style = MaterialTheme.typography.titleSmall.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            ),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis
                                         )
                                         if (item.isDealPrice) {
                                             Spacer(modifier = Modifier.width(6.dp))
                                             Surface(
-                                                color = Color(0xFFFEF3C7),
+                                                color = StatusAmberContainer,
                                                 shape = RoundedCornerShape(6.dp)
                                             ) {
                                                 Text(
                                                     text = "Harga Deal",
                                                     style = MaterialTheme.typography.labelSmall.copy(
-                                                        color = DagangWarningAmber,
+                                                        color = StatusAmberText,
                                                         fontWeight = FontWeight.Bold,
                                                         fontSize = 10.sp
                                                     ),
@@ -417,13 +429,13 @@ fun CreateSoScreen(
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = "${item.qty} ${item.produk.satuan} × ${Formatters.formatRupiah(item.hargaJual)}",
-                                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                                     )
                                     Text(
                                         text = "Subtotal: ${Formatters.formatRupiah(item.subtotal)}",
                                         style = MaterialTheme.typography.bodyMedium.copy(
                                             fontWeight = FontWeight.Bold,
-                                            color = DagangBluePrimary
+                                            color = MaterialTheme.colorScheme.primary
                                         )
                                     )
                                 }
@@ -432,7 +444,7 @@ fun CreateSoScreen(
                                     onClick = { cartItems.removeAt(index) },
                                     modifier = Modifier.testTag("remove_so_item_$index")
                                 ) {
-                                    Icon(Icons.Default.DeleteOutline, contentDescription = "Hapus Item", tint = DagangDebtRed)
+                                    Icon(Icons.Default.DeleteOutline, contentDescription = "Hapus Item", tint = StatusRedText)
                                 }
                             }
 
@@ -441,7 +453,7 @@ fun CreateSoScreen(
                                 Text(
                                     text = "❌ Stok tidak mencukupi! Tersedia: ${item.availableStock} ${item.produk.satuan}, Diminta: ${item.qty}",
                                     style = MaterialTheme.typography.bodySmall.copy(
-                                        color = DagangOnDebtRed,
+                                        color = StatusRedText,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 11.sp
                                     )
@@ -487,7 +499,7 @@ fun AddSoItemDialog(
     customerId: Long,
     viewModel: MainViewModel,
     onDismiss: () -> Unit,
-    onAddItem: (produkWithStock: ProdukWithStock, qty: Int, hargaJual: Double, isDeal: Boolean) -> Unit
+    onAddItem: (produkWithStock: ProdukWithStock, qty: Int, hargaJual: Long, isDeal: Boolean) -> Unit
 ) {
     var selectedItem by remember { mutableStateOf(allProdukWithStock.firstOrNull()) }
     var qtyText by remember { mutableStateOf("1") }
@@ -501,21 +513,28 @@ fun AddSoItemDialog(
     LaunchedEffect(selectedItem, customerId) {
         selectedItem?.let { item ->
             val effective = viewModel.getEffectivePriceForCustomer(customerId, item.produk.id)
-            hargaJualText = effective.toLong().toString()
+            hargaJualText = effective.toString()
             isDealPrice = (effective != item.produk.hargaJual)
         }
     }
 
     val qty = qtyText.toIntOrNull() ?: 0
-    val hargaJual = hargaJualText.toDoubleOrNull() ?: 0.0
-    val subtotal = qty * hargaJual
+    val hargaJual = hargaJualText.toLongOrNull() ?: 0L
+    val subtotal = qty.toLong() * hargaJual
     val availableStock = selectedItem?.stok ?: 0
     val isStockInsufficient = qty > availableStock
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
-            Text("Tambah Produk ke Penjualan", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
+            Text(
+                "Tambah Produk ke Penjualan",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
         },
         text = {
             Column(
@@ -527,7 +546,7 @@ fun AddSoItemDialog(
                 if (errorMessage != null) {
                     Text(
                         text = errorMessage!!,
-                        color = DagangDebtRed,
+                        color = StatusRedText,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
                     )
                 }
@@ -561,13 +580,13 @@ fun AddSoItemDialog(
                                             Text(
                                                 "Stok: ${prodItem.stok} ${prodItem.produk.satuan}",
                                                 fontSize = 11.sp,
-                                                color = if (prodItem.stok <= 0) DagangDebtRed else DagangIncomeGreen,
+                                                color = if (prodItem.stok <= 0) StatusRedText else StatusGreenText,
                                                 fontWeight = FontWeight.Bold
                                             )
                                             Text(
                                                 "Normal: ${Formatters.formatRupiah(prodItem.produk.hargaJual)}",
                                                 fontSize = 11.sp,
-                                                color = NeutralTextSecondary
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
                                     }
@@ -586,7 +605,7 @@ fun AddSoItemDialog(
                     Card(
                         shape = RoundedCornerShape(8.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (item.stok <= 0) DagangDebtRedContainer else NeutralSurfaceVariant
+                            containerColor = if (item.stok <= 0) StatusRedContainer else MaterialTheme.colorScheme.surfaceVariant
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -597,12 +616,12 @@ fun AddSoItemDialog(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Stok Tersedia Saat Ini:", style = MaterialTheme.typography.bodySmall)
+                            Text("Stok Tersedia Saat Ini:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(
                                 "${item.stok} ${item.produk.satuan}",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = if (item.stok <= 0) DagangDebtRed else DagangIncomeGreen
+                                    color = if (item.stok <= 0) StatusRedText else StatusGreenText
                                 )
                             )
                         }
@@ -611,7 +630,7 @@ fun AddSoItemDialog(
 
                 if (isDealPrice) {
                     Surface(
-                        color = Color(0xFFFEF3C7),
+                        color = StatusAmberContainer,
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -619,11 +638,11 @@ fun AddSoItemDialog(
                             modifier = Modifier.padding(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.Sell, contentDescription = null, tint = DagangWarningAmber, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Sell, contentDescription = null, tint = StatusAmberText, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "Harga deal khusus diterapkan untuk pelanggan ini (tetap dapat diedit)",
-                                style = MaterialTheme.typography.labelSmall.copy(color = DagangOnWarningAmber, fontWeight = FontWeight.SemiBold)
+                                style = MaterialTheme.typography.labelSmall.copy(color = StatusAmberText, fontWeight = FontWeight.SemiBold)
                             )
                         }
                     }
@@ -659,7 +678,7 @@ fun AddSoItemDialog(
                 if (isStockInsufficient) {
                     Text(
                         text = "⚠️ Stok tidak mencukupi! Maksimal: $availableStock",
-                        color = DagangDebtRed,
+                        color = StatusRedText,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                     )
                 }
@@ -667,7 +686,7 @@ fun AddSoItemDialog(
                 // Subtotal calculation preview
                 Card(
                     shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = NeutralSurfaceVariant),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -676,10 +695,10 @@ fun AddSoItemDialog(
                             .padding(10.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Subtotal Item:", style = MaterialTheme.typography.bodyMedium)
+                        Text("Subtotal Item:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Text(
                             text = Formatters.formatRupiah(subtotal),
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = DagangBluePrimary)
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                         )
                     }
                 }
@@ -709,14 +728,22 @@ fun AddSoItemDialog(
                     onAddItem(prodItem, qty, hargaJual, isDealPrice)
                 },
                 enabled = !isStockInsufficient && qty > 0,
-                colors = ButtonDefaults.buttonColors(containerColor = DagangBluePrimary),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
                 modifier = Modifier.testTag("btn_confirm_add_so_item")
             ) {
                 Text("Tambahkan")
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            OutlinedButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
                 Text("Batal")
             }
         },

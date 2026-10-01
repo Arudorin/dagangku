@@ -30,8 +30,8 @@ interface DagangKuRepository {
 
     // Harga Customer (Deal)
     fun getHargaCustomerList(customerId: Long): Flow<List<CustomerDealItem>>
-    suspend fun getEffectivePrice(customerId: Long, produkId: Long): Double
-    suspend fun setCustomerDealPrice(customerId: Long, produkId: Long, hargaDeal: Double)
+    suspend fun getEffectivePrice(customerId: Long, produkId: Long): Long
+    suspend fun setCustomerDealPrice(customerId: Long, produkId: Long, hargaDeal: Long)
     suspend fun removeCustomerDealPrice(customerId: Long, produkId: Long)
 
     // PO (Pembelian)
@@ -64,7 +64,7 @@ interface DagangKuRepository {
     fun getKasSummary(): Flow<KasSummary>
 
     // Dashboard
-    fun getDashboardSummary(): Flow<DashboardSummary>
+    fun getDashboardSummary(startDate: Long = 0L, endDate: Long = Long.MAX_VALUE): Flow<DashboardSummary>
 
     // Laporan Keuangan (Step 3)
     fun getLaporanKeuangan(startDate: Long, endDate: Long, periodType: PeriodType): Flow<LaporanKeuanganData>

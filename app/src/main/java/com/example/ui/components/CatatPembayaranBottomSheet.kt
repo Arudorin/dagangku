@@ -15,7 +15,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -30,27 +29,28 @@ import com.example.util.Formatters
 fun CatatPembayaranBottomSheet(
     targetInfo: PaymentTargetInfo,
     onDismiss: () -> Unit,
-    onSavePayment: (nominal: Double, metode: String, catatan: String) -> Unit,
+    onSavePayment: (nominal: Long, metode: String, catatan: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     val isCustomerPayment = targetInfo.tipe == "CUSTOMER"
-    val accentColor = if (isCustomerPayment) DagangIncomeGreen else DagangBluePrimary
+    val accentColor = if (isCustomerPayment) StatusGreenText else MaterialTheme.colorScheme.primary
+    val accentContainer = if (isCustomerPayment) StatusGreenContainer else MaterialTheme.colorScheme.primaryContainer
 
     var nominalText by remember {
-        mutableStateOf(targetInfo.remainingBalance.toLong().toString())
+        mutableStateOf(targetInfo.remainingBalance.toString())
     }
     var metode by remember {
-        mutableStateOf(if (isCustomerPayment) "Transfer Bank" else "Transfer Bank")
+        mutableStateOf("Transfer Bank")
     }
     var catatan by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val methods = listOf("Tunai", "Transfer Bank", "QRIS", "Giro", "Lainnya")
 
-    val inputNominal = nominalText.toDoubleOrNull() ?: 0.0
-    val sisaSetelahBayar = (targetInfo.remainingBalance - inputNominal).coerceAtLeast(0.0)
+    val inputNominal = nominalText.toLongOrNull() ?: 0L
+    val sisaSetelahBayar = (targetInfo.remainingBalance - inputNominal).coerceAtLeast(0L)
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -77,7 +77,7 @@ fun CatatPembayaranBottomSheet(
                     modifier = Modifier
                         .size(40.dp)
                         .background(
-                            color = if (isCustomerPayment) DagangIncomeGreenContainer else DagangBlueContainer,
+                            color = accentContainer,
                             shape = RoundedCornerShape(12.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -97,12 +97,12 @@ fun CatatPembayaranBottomSheet(
                         text = if (isCustomerPayment) "Catat Pembayaran Masuk" else "Catat Pembayaran Keluar",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = NeutralTextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     )
                     Text(
                         text = if (isCustomerPayment) "Penerimaan cicilan / pelunasan piutang customer" else "Pembayaran cicilan / pelunasan hutang PO distributor",
-                        style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                        style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                     )
                 }
             }
@@ -110,10 +110,10 @@ fun CatatPembayaranBottomSheet(
             // Info Card (SO/PO Ref & Balance)
             Card(
                 shape = RoundedCornerShape(14.dp),
-                colors = CardDefaults.cardColors(containerColor = NeutralSurfaceVariant),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, NeutralOutline, RoundedCornerShape(14.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
             ) {
                 Column(
                     modifier = Modifier.padding(14.dp),
@@ -125,13 +125,13 @@ fun CatatPembayaranBottomSheet(
                     ) {
                         Text(
                             text = if (isCustomerPayment) "Nomor SO / Pelanggan:" else "Nomor PO / Distributor:",
-                            style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Text(
                             text = "${targetInfo.refNumber} • ${targetInfo.partyName}",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = NeutralTextPrimary
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         )
                     }
@@ -142,11 +142,14 @@ fun CatatPembayaranBottomSheet(
                     ) {
                         Text(
                             text = "Total Nilai Transaksi:",
-                            style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Text(
                             text = Formatters.formatRupiah(targetInfo.totalTransaction),
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold)
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         )
                     }
 
@@ -156,18 +159,18 @@ fun CatatPembayaranBottomSheet(
                     ) {
                         Text(
                             text = "Sudah Dibayar Sebelumnya:",
-                            style = MaterialTheme.typography.bodySmall.copy(color = NeutralTextSecondary)
+                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
                         )
                         Text(
                             text = Formatters.formatRupiah(targetInfo.alreadyPaid),
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontWeight = FontWeight.SemiBold,
-                                color = DagangIncomeGreen
+                                color = StatusGreenText
                             )
                         )
                     }
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = NeutralOutline)
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outline)
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -176,13 +179,16 @@ fun CatatPembayaranBottomSheet(
                     ) {
                         Text(
                             text = if (isCustomerPayment) "Sisa Piutang Saat Ini:" else "Sisa Hutang Saat Ini:",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         )
                         Text(
                             text = Formatters.formatRupiah(targetInfo.remainingBalance),
                             style = MaterialTheme.typography.titleSmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = DagangDebtRed
+                                color = StatusRedText
                             )
                         )
                     }
@@ -192,7 +198,7 @@ fun CatatPembayaranBottomSheet(
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
-                    color = DagangDebtRed,
+                    color = StatusRedText,
                     style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                 )
             }
@@ -202,7 +208,7 @@ fun CatatPembayaranBottomSheet(
                 text = "Pilih Cepat Nominal Pembayaran:",
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.SemiBold,
-                    color = NeutralTextSecondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
 
@@ -212,7 +218,7 @@ fun CatatPembayaranBottomSheet(
             ) {
                 OutlinedButton(
                     onClick = {
-                        nominalText = targetInfo.remainingBalance.toLong().toString()
+                        nominalText = targetInfo.remainingBalance.toString()
                     },
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(8.dp),
@@ -223,7 +229,7 @@ fun CatatPembayaranBottomSheet(
 
                 OutlinedButton(
                     onClick = {
-                        val half = (targetInfo.remainingBalance * 0.5).toLong()
+                        val half = Math.round(targetInfo.remainingBalance * 0.5)
                         nominalText = half.toString()
                     },
                     modifier = Modifier.weight(1f),
@@ -235,7 +241,7 @@ fun CatatPembayaranBottomSheet(
 
                 OutlinedButton(
                     onClick = {
-                        val quarter = (targetInfo.remainingBalance * 0.25).toLong()
+                        val quarter = Math.round(targetInfo.remainingBalance * 0.25)
                         nominalText = quarter.toString()
                     },
                     modifier = Modifier.weight(1f),
@@ -263,9 +269,9 @@ fun CatatPembayaranBottomSheet(
             )
 
             // Balance after payment preview
-            if (inputNominal > 0) {
+            if (inputNominal > 0L) {
                 Surface(
-                    color = if (sisaSetelahBayar == 0.0) DagangIncomeGreenContainer else NeutralSurfaceVariant,
+                    color = if (sisaSetelahBayar == 0L) StatusGreenContainer else MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -277,17 +283,17 @@ fun CatatPembayaranBottomSheet(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = if (sisaSetelahBayar == 0.0) "Status setelah bayar: LUNAS" else "Sisa tagihan tersisa:",
+                            text = if (sisaSetelahBayar == 0L) "Status setelah bayar: LUNAS" else "Sisa tagihan tersisa:",
                             style = MaterialTheme.typography.bodySmall.copy(
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (sisaSetelahBayar == 0.0) DagangOnIncomeGreen else NeutralTextSecondary
+                                color = if (sisaSetelahBayar == 0L) StatusGreenText else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         )
                         Text(
                             text = Formatters.formatRupiah(sisaSetelahBayar),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.Bold,
-                                color = if (sisaSetelahBayar == 0.0) DagangOnIncomeGreen else DagangDebtRed
+                                color = if (sisaSetelahBayar == 0L) StatusGreenText else StatusRedText
                             )
                         )
                     }
@@ -297,7 +303,10 @@ fun CatatPembayaranBottomSheet(
             // Payment Method Selector
             Text(
                 text = "Metode Pembayaran:",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold)
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
 
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -307,8 +316,8 @@ fun CatatPembayaranBottomSheet(
                         onClick = { metode = m },
                         label = { Text(m) },
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = accentColor,
-                            selectedLabelColor = Color.White
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                         )
                     )
                 }
@@ -341,14 +350,17 @@ fun CatatPembayaranBottomSheet(
 
                 Button(
                     onClick = {
-                        val nominal = nominalText.toDoubleOrNull() ?: 0.0
+                        val nominal = nominalText.toLongOrNull() ?: 0L
                         if (nominal <= 0) {
                             errorMessage = "Nominal pembayaran harus lebih besar dari 0"
                             return@Button
                         }
                         onSavePayment(nominal, metode, catatan)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = accentColor),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = accentColor,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
                     modifier = Modifier
                         .weight(1.5f)
                         .testTag("btn_sheet_save_payment"),

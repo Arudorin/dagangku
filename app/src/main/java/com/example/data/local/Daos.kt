@@ -25,7 +25,7 @@ interface ProdukDao {
     suspend fun delete(produk: Produk)
 
     @Query("UPDATE produk SET hargaDasar = :newHargaDasar WHERE id = :id")
-    suspend fun updateHargaDasar(id: Long, newHargaDasar: Double)
+    suspend fun updateHargaDasar(id: Long, newHargaDasar: Long)
 }
 
 @Dao
@@ -207,11 +207,11 @@ interface PembayaranDao {
     @Query("DELETE FROM pembayaran WHERE tipe = :tipe AND refId = :refId")
     suspend fun deleteByRef(tipe: String, refId: Long)
 
-    @Query("SELECT COALESCE(SUM(nominal), 0.0) FROM pembayaran WHERE tipe = :tipe AND refId = :refId")
-    suspend fun getTotalPaidForRef(tipe: String, refId: Long): Double
+    @Query("SELECT COALESCE(SUM(nominal), 0) FROM pembayaran WHERE tipe = :tipe AND refId = :refId")
+    suspend fun getTotalPaidForRef(tipe: String, refId: Long): Long
 
-    @Query("SELECT COALESCE(SUM(nominal), 0.0) FROM pembayaran WHERE tipe = :tipe")
-    fun getTotalPaidForType(tipe: String): Flow<Double>
+    @Query("SELECT COALESCE(SUM(nominal), 0) FROM pembayaran WHERE tipe = :tipe")
+    fun getTotalPaidForType(tipe: String): Flow<Long>
 }
 
 @Dao
@@ -225,6 +225,6 @@ interface PengeluaranDao {
     @Delete
     suspend fun delete(pengeluaran: Pengeluaran)
 
-    @Query("SELECT COALESCE(SUM(nominal), 0.0) FROM pengeluaran")
-    fun getTotalPengeluaran(): Flow<Double>
+    @Query("SELECT COALESCE(SUM(nominal), 0) FROM pengeluaran")
+    fun getTotalPengeluaran(): Flow<Long>
 }
