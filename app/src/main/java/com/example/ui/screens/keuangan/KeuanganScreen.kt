@@ -129,6 +129,31 @@ fun KeuanganScreen(
 
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 
+                    if (kasSummary.saldoAwal > 0L) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Termasuk Saldo Awal Kas:",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                )
+                                Text(
+                                    text = Formatters.formatRupiah(kasSummary.saldoAwal),
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                                )
+                            }
+                        }
+                    }
+
                     // In & Out Summary Grid
                     Row(
                         modifier = Modifier.fillMaxWidth(),

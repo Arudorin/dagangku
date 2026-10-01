@@ -17,17 +17,108 @@ sealed interface UiEvent {
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: DagangKuRepository = DagangKuRepositoryImpl(
-        AppDatabase.getInstance(application)
+        AppDatabase.getInstance(application),
+        application
     )
 
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
     init {
+        // Requirement 4: Do not auto-seed on first launch;
+        // User is prompted to choose "Mulai kosong" or "Pakai data contoh".
+    }
+
+    // Settings & Initial Setup
+    val saldoAwalKas: StateFlow<Long> = repository.getSaldoAwalKas()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0L
+        )
+
+    val sampleDataEnabled: StateFlow<Boolean> = repository.isSampleDataEnabled()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    val hasChosenInitialSetup: StateFlow<Boolean> = repository.hasChosenInitialSetup()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    fun setInitialSetupChoice(useSampleData: Boolean) {
         viewModelScope.launch {
-            repository.seedInitialDataIfNeeded()
+            repository.setInitialSetupChoice(useSampleData)
+            val msg = if (useSampleData) "Data contoh usaha berhasil dimuat" else "Memulai dengan pembukuan kosong"
+            _eventFlow.emit(UiEvent.ShowMessage(msg))
         }
     }
+
+    fun setSaldoAwalKas(saldoAwal: Long) {
+        viewModelScope.launch {
+            repository.setSaldoAwalKas(saldoAwal)
+            _eventFlow.emit(UiEvent.ShowMessage("Saldo awal kas berhasil disimpan"))
+        }
+    }
+
+    fun toggleSampleData(enable: Boolean) {
+        viewModelScope.launch {
+            if (enable) {
+                repository.seedSampleData()
+                _eventFlow.emit(UiEvent.ShowMessage("Data contoh berhasil dimuat"))
+            } else {
+                repository.removeSampleData()
+                _eventFlow.emit(UiEvent.ShowMessage("Data contoh berhasil dibersihkan"))
+            }
+        }
+    }
+
+    fun clearAllData() {
+        viewModelScope.launch {
+            repository.clearAllData()
+            _eventFlow.emit(UiEvent.ShowMessage("Seluruh data berhasil dihapus"))
+        }
+    }
+
+    fun exportBackup(context: android.content.Context, onResult: (com.example.util.ExportBackupResult) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val backupData = repository.exportDatabaseBackup()
+                val exportResult = com.example.util.BackupRestoreManager.writeBackupFile(context, backupData)
+                onResult(exportResult)
+                _eventFlow.emit(UiEvent.ShowMessage("File cadangan database berhasil dibuat!"))
+            } catch (e: Exception) {
+                _eventFlow.emit(UiEvent.ShowMessage("Gagal mencadangkan data: ${e.localizedMessage}"))
+            }
+        }
+    }
+
+    fun restoreBackup(
+        backupData: com.example.util.BackupData,
+        onSuccess: () -> Unit = {},
+        onError: (String) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val result = repository.restoreDatabaseBackup(backupData)
+            result.onSuccess {
+                onSuccess()
+                _eventFlow.emit(UiEvent.ShowMessage("Database berhasil dipulihkan dari cadangan!"))
+            }.onFailure { err ->
+                val msg = err.localizedMessage ?: "Gagal memulihkan database"
+                onError(msg)
+                _eventFlow.emit(UiEvent.ShowMessage(msg))
+            }
+        }
+    }
+
+    suspend fun canDeleteProduk(id: Long): Boolean = repository.canDeleteProduk(id)
+    suspend fun canDeleteDistributor(id: Long): Boolean = repository.canDeleteDistributor(id)
+    suspend fun canDeleteCustomer(id: Long): Boolean = repository.canDeleteCustomer(id)
 
     // Period Filter & Selection (Shared between Beranda Dashboard and Laporan Keuangan)
     private val _selectedPeriodType = MutableStateFlow(PeriodType.BULANAN)
@@ -214,9 +305,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteProduk(produk: Produk, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
-            repository.deleteProduk(produk)
-            _eventFlow.emit(UiEvent.ShowMessage("Produk '${produk.nama}' telah dihapus"))
-            onSuccess()
+            try {
+                repository.deleteProduk(produk)
+                _eventFlow.emit(UiEvent.ShowMessage("Produk '${produk.nama}' telah dihapus"))
+                onSuccess()
+            } catch (e: Exception) {
+                _eventFlow.emit(UiEvent.ShowMessage(e.message ?: "Gagal menghapus produk", isError = true))
+            }
         }
     }
 
@@ -254,9 +349,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteDistributor(distributor: Distributor, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
-            repository.deleteDistributor(distributor)
-            _eventFlow.emit(UiEvent.ShowMessage("Distributor '${distributor.nama}' telah dihapus"))
-            onSuccess()
+            try {
+                repository.deleteDistributor(distributor)
+                _eventFlow.emit(UiEvent.ShowMessage("Distributor '${distributor.nama}' telah dihapus"))
+                onSuccess()
+            } catch (e: Exception) {
+                _eventFlow.emit(UiEvent.ShowMessage(e.message ?: "Gagal menghapus distributor", isError = true))
+            }
         }
     }
 
@@ -296,9 +395,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteCustomer(customer: Customer, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
-            repository.deleteCustomer(customer)
-            _eventFlow.emit(UiEvent.ShowMessage("Pelanggan '${customer.nama}' telah dihapus"))
-            onSuccess()
+            try {
+                repository.deleteCustomer(customer)
+                _eventFlow.emit(UiEvent.ShowMessage("Pelanggan '${customer.nama}' telah dihapus"))
+                onSuccess()
+            } catch (e: Exception) {
+                _eventFlow.emit(UiEvent.ShowMessage(e.message ?: "Gagal menghapus pelanggan", isError = true))
+            }
         }
     }
 
@@ -468,18 +571,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 _eventFlow.emit(UiEvent.ShowMessage("Nominal pembayaran harus lebih dari 0", isError = true))
                 return@launch
             }
-            val payment = Pembayaran(
-                tipe = tipe,
-                refId = refId,
-                nominal = nominal,
-                tanggal = tanggal,
-                metode = metode.ifBlank { "Tunai" },
-                catatan = catatan.trim()
-            )
-            repository.addPembayaran(payment)
-            val typeDesc = if (tipe == "CUSTOMER") "Pembayaran pelanggan" else "Pembayaran ke distributor"
-            _eventFlow.emit(UiEvent.ShowMessage("$typeDesc berhasil dicatat"))
-            onSuccess()
+            try {
+                val payment = Pembayaran(
+                    tipe = tipe,
+                    refId = refId,
+                    nominal = nominal,
+                    tanggal = tanggal,
+                    metode = metode.ifBlank { "Tunai" },
+                    catatan = catatan.trim()
+                )
+                repository.addPembayaran(payment)
+                val typeDesc = if (tipe == "CUSTOMER") "Pembayaran pelanggan" else "Pembayaran ke distributor"
+                _eventFlow.emit(UiEvent.ShowMessage("$typeDesc berhasil dicatat"))
+                onSuccess()
+            } catch (e: Exception) {
+                _eventFlow.emit(UiEvent.ShowMessage(e.message ?: "Gagal mencatat pembayaran", isError = true))
+            }
         }
     }
 

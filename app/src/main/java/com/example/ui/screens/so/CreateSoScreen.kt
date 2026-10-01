@@ -472,20 +472,42 @@ fun CreateSoScreen(
     if (showAddItemDialog) {
         AddSoItemDialog(
             allProdukWithStock = produkList,
+            existingCartItems = cartItems.toList(),
             customerId = selectedCustomer?.id ?: 0L,
             viewModel = viewModel,
             onDismiss = { showAddItemDialog = false },
             onAddItem = { prodWithStock, qty, hargaJual, isDeal ->
-                cartItems.add(
-                    CartItemSo(
+                val existingIndex = cartItems.indexOfFirst { it.produk.id == prodWithStock.produk.id }
+                if (existingIndex >= 0) {
+                    val existing = cartItems[existingIndex]
+                    val mergedQty = existing.qty + qty
+                    val updatedItem = existing.copy(
+                        qty = mergedQty,
+                        hargaJual = hargaJual,
+                        isDealPrice = isDeal,
+                        availableStock = prodWithStock.stok
+                    )
+                    cartItems[existingIndex] = updatedItem
+                    if (updatedItem.isInsufficientStock) {
+                        validationError = "Stok '${prodWithStock.produk.nama}' tidak cukup setelah digabungkan! Total diminta: $mergedQty ${prodWithStock.produk.satuan}, tersedia: ${prodWithStock.stok}"
+                    } else {
+                        validationError = null
+                    }
+                } else {
+                    val newItem = CartItemSo(
                         produk = prodWithStock.produk,
                         qty = qty,
                         hargaJual = hargaJual,
                         isDealPrice = isDeal,
                         availableStock = prodWithStock.stok
                     )
-                )
-                validationError = null
+                    cartItems.add(newItem)
+                    if (newItem.isInsufficientStock) {
+                        validationError = "Stok '${prodWithStock.produk.nama}' tidak cukup! Tersedia: ${prodWithStock.stok}, diminta: $qty"
+                    } else {
+                        validationError = null
+                    }
+                }
                 showAddItemDialog = false
             }
         )
@@ -496,6 +518,7 @@ fun CreateSoScreen(
 @Composable
 fun AddSoItemDialog(
     allProdukWithStock: List<ProdukWithStock>,
+    existingCartItems: List<CartItemSo> = emptyList(),
     customerId: Long,
     viewModel: MainViewModel,
     onDismiss: () -> Unit,
@@ -522,7 +545,12 @@ fun AddSoItemDialog(
     val hargaJual = hargaJualText.toLongOrNull() ?: 0L
     val subtotal = qty.toLong() * hargaJual
     val availableStock = selectedItem?.stok ?: 0
-    val isStockInsufficient = qty > availableStock
+    val existingInCart = remember(selectedItem, existingCartItems) {
+        selectedItem?.let { p -> existingCartItems.firstOrNull { it.produk.id == p.produk.id } }
+    }
+    val existingQty = existingInCart?.qty ?: 0
+    val totalQtyAfterAdd = existingQty + qty
+    val isStockInsufficient = totalQtyAfterAdd > availableStock
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -628,6 +656,25 @@ fun AddSoItemDialog(
                     }
                 }
 
+                if (existingInCart != null) {
+                    Surface(
+                        color = if (isStockInsufficient) StatusRedContainer else StatusAmberContainer,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = if (isStockInsufficient) {
+                                "⚠️ Produk sudah ada di keranjang ($existingQty ${selectedItem?.produk?.satuan}). Total setelah digabung ($totalQtyAfterAdd) melebihi stok tersedia ($availableStock)!"
+                            } else {
+                                "ℹ️ Produk sudah ada di keranjang ($existingQty ${selectedItem?.produk?.satuan}). Jumlah akan digabungkan menjadi $totalQtyAfterAdd ${selectedItem?.produk?.satuan}."
+                            },
+                            color = if (isStockInsufficient) StatusRedText else StatusAmberText,
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+
                 if (isDealPrice) {
                     Surface(
                         color = StatusAmberContainer,
@@ -677,7 +724,11 @@ fun AddSoItemDialog(
 
                 if (isStockInsufficient) {
                     Text(
-                        text = "⚠️ Stok tidak mencukupi! Maksimal: $availableStock",
+                        text = if (existingInCart != null) {
+                            "⚠️ Total setelah digabung ($totalQtyAfterAdd ${selectedItem?.produk?.satuan}) melebihi stok tersedia ($availableStock)!"
+                        } else {
+                            "⚠️ Stok tidak mencukupi! Maksimal: $availableStock ${selectedItem?.produk?.satuan ?: ""}"
+                        },
                         color = StatusRedText,
                         style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                     )
@@ -716,9 +767,9 @@ fun AddSoItemDialog(
                         errorMessage = "Jumlah qty harus lebih dari 0"
                         return@Button
                     }
-                    // CRITICAL: Block if stock is insufficient
-                    if (qty > prodItem.stok) {
-                        errorMessage = "Stok tidak mencukupi! Hanya tersedia ${prodItem.stok} ${prodItem.produk.satuan}"
+                    // CRITICAL: Block if stock is insufficient on the merged total
+                    if (totalQtyAfterAdd > prodItem.stok) {
+                        errorMessage = "Stok tidak mencukupi! Total setelah digabung ($totalQtyAfterAdd) melebihi stok (${prodItem.stok} ${prodItem.produk.satuan})"
                         return@Button
                     }
                     if (hargaJual <= 0) {

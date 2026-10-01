@@ -26,6 +26,15 @@ interface ProdukDao {
 
     @Query("UPDATE produk SET hargaDasar = :newHargaDasar WHERE id = :id")
     suspend fun updateHargaDasar(id: Long, newHargaDasar: Long)
+
+    @Query("SELECT * FROM produk")
+    suspend fun getAllList(): List<Produk>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<Produk>)
+
+    @Query("DELETE FROM produk")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -42,11 +51,20 @@ interface DistributorDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(distributor: Distributor): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<Distributor>)
+
+    @Query("SELECT * FROM distributor")
+    suspend fun getAllList(): List<Distributor>
+
     @Update
     suspend fun update(distributor: Distributor)
 
     @Delete
     suspend fun delete(distributor: Distributor)
+
+    @Query("DELETE FROM distributor")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -63,11 +81,20 @@ interface CustomerDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(customer: Customer): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<Customer>)
+
+    @Query("SELECT * FROM customer")
+    suspend fun getAllList(): List<Customer>
+
     @Update
     suspend fun update(customer: Customer)
 
     @Delete
     suspend fun delete(customer: Customer)
+
+    @Query("DELETE FROM customer")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -87,11 +114,26 @@ interface HargaCustomerDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdate(hargaCustomer: HargaCustomer): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<HargaCustomer>)
+
+    @Query("SELECT * FROM harga_customer")
+    suspend fun getAllList(): List<HargaCustomer>
+
     @Delete
     suspend fun delete(hargaCustomer: HargaCustomer)
 
     @Query("DELETE FROM harga_customer WHERE customerId = :customerId AND produkId = :produkId")
     suspend fun deleteDeal(customerId: Long, produkId: Long)
+
+    @Query("DELETE FROM harga_customer WHERE produkId = :produkId")
+    suspend fun deleteByProdukId(produkId: Long)
+
+    @Query("DELETE FROM harga_customer WHERE customerId = :customerId")
+    suspend fun deleteByCustomerId(customerId: Long)
+
+    @Query("DELETE FROM harga_customer")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -108,11 +150,23 @@ interface PoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(po: PO): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<PO>)
+
+    @Query("SELECT * FROM po")
+    suspend fun getAllList(): List<PO>
+
     @Delete
     suspend fun delete(po: PO)
 
     @Query("SELECT COUNT(*) FROM po")
     fun getPoCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM po WHERE distributorId = :distributorId")
+    suspend fun countByDistributorId(distributorId: Long): Int
+
+    @Query("DELETE FROM po")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -122,6 +176,9 @@ interface ItemPoDao {
 
     @Query("SELECT * FROM item_po WHERE poId = :poId")
     suspend fun getItemsForPoSync(poId: Long): List<ItemPO>
+
+    @Query("SELECT * FROM item_po")
+    suspend fun getAllList(): List<ItemPO>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(items: List<ItemPO>)
@@ -135,8 +192,14 @@ interface ItemPoDao {
     @Query("SELECT COALESCE(SUM(qty), 0) FROM item_po WHERE produkId = :produkId")
     fun getTotalQtyForProductFlow(produkId: Long): Flow<Int>
 
+    @Query("SELECT COUNT(*) FROM item_po WHERE produkId = :produkId")
+    suspend fun countByProdukId(produkId: Long): Int
+
     @Query("SELECT * FROM item_po")
     fun getAllItems(): Flow<List<ItemPO>>
+
+    @Query("DELETE FROM item_po")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -153,11 +216,23 @@ interface SoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(so: SO): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<SO>)
+
+    @Query("SELECT * FROM so")
+    suspend fun getAllList(): List<SO>
+
     @Delete
     suspend fun delete(so: SO)
 
     @Query("SELECT COUNT(*) FROM so")
     fun getSoCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM so WHERE customerId = :customerId")
+    suspend fun countByCustomerId(customerId: Long): Int
+
+    @Query("DELETE FROM so")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -167,6 +242,9 @@ interface ItemSoDao {
 
     @Query("SELECT * FROM item_so WHERE soId = :soId")
     suspend fun getItemsForSoSync(soId: Long): List<ItemSO>
+
+    @Query("SELECT * FROM item_so")
+    suspend fun getAllList(): List<ItemSO>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(items: List<ItemSO>)
@@ -180,8 +258,14 @@ interface ItemSoDao {
     @Query("SELECT COALESCE(SUM(qty), 0) FROM item_so WHERE produkId = :produkId")
     fun getTotalQtyForProductFlow(produkId: Long): Flow<Int>
 
+    @Query("SELECT COUNT(*) FROM item_so WHERE produkId = :produkId")
+    suspend fun countByProdukId(produkId: Long): Int
+
     @Query("SELECT * FROM item_so")
     fun getAllItems(): Flow<List<ItemSO>>
+
+    @Query("DELETE FROM item_so")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -198,8 +282,14 @@ interface PembayaranDao {
     @Query("SELECT * FROM pembayaran WHERE tipe = :tipe ORDER BY tanggal DESC")
     fun getByType(tipe: String): Flow<List<Pembayaran>>
 
+    @Query("SELECT * FROM pembayaran")
+    suspend fun getAllList(): List<Pembayaran>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(pembayaran: Pembayaran): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<Pembayaran>)
 
     @Delete
     suspend fun delete(pembayaran: Pembayaran)
@@ -212,6 +302,9 @@ interface PembayaranDao {
 
     @Query("SELECT COALESCE(SUM(nominal), 0) FROM pembayaran WHERE tipe = :tipe")
     fun getTotalPaidForType(tipe: String): Flow<Long>
+
+    @Query("DELETE FROM pembayaran")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -219,12 +312,21 @@ interface PengeluaranDao {
     @Query("SELECT * FROM pengeluaran ORDER BY tanggal DESC, id DESC")
     fun getAll(): Flow<List<Pengeluaran>>
 
+    @Query("SELECT * FROM pengeluaran")
+    suspend fun getAllList(): List<Pengeluaran>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(pengeluaran: Pengeluaran): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(items: List<Pengeluaran>)
 
     @Delete
     suspend fun delete(pengeluaran: Pengeluaran)
 
     @Query("SELECT COALESCE(SUM(nominal), 0) FROM pengeluaran")
     fun getTotalPengeluaran(): Flow<Long>
+
+    @Query("DELETE FROM pengeluaran")
+    suspend fun deleteAll()
 }

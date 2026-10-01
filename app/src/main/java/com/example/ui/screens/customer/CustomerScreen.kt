@@ -25,6 +25,7 @@ import com.example.data.model.Customer
 import com.example.ui.MainViewModel
 import com.example.ui.components.ConfirmDeleteDialog
 import com.example.ui.components.DagangKuTopAppBar
+import kotlinx.coroutines.launch
 import com.example.ui.components.EmptyStateView
 import com.example.ui.theme.*
 import com.example.util.Formatters
@@ -42,6 +43,8 @@ fun CustomerScreen(
     var showFormDialog by remember { mutableStateOf(false) }
     var editingCustomer by remember { mutableStateOf<Customer?>(null) }
     var customerToDelete by remember { mutableStateOf<Customer?>(null) }
+    var cannotDeleteMessage by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     val filteredList = remember(customerList, searchQuery) {
         if (searchQuery.isBlank()) customerList else {
@@ -129,7 +132,13 @@ fun CustomerScreen(
                                 showFormDialog = true
                             },
                             onDelete = {
-                                customerToDelete = customer
+                                coroutineScope.launch {
+                                    if (!viewModel.canDeleteCustomer(customer.id)) {
+                                        cannotDeleteMessage = "Pelanggan '${customer.nama}' tidak dapat dihapus karena sudah memiliki riwayat transaksi Penjualan (SO)."
+                                    } else {
+                                        customerToDelete = customer
+                                    }
+                                }
                             }
                         )
                     }
@@ -152,6 +161,20 @@ fun CustomerScreen(
                     persenKomisi = komisi,
                     onSuccess = { showFormDialog = false }
                 )
+            }
+        )
+    }
+
+    cannotDeleteMessage?.let { msg ->
+        AlertDialog(
+            onDismissRequest = { cannotDeleteMessage = null },
+            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = StatusAmberText) },
+            title = { Text("Tidak Dapat Menghapus Pelanggan", fontWeight = FontWeight.Bold) },
+            text = { Text(msg) },
+            confirmButton = {
+                TextButton(onClick = { cannotDeleteMessage = null }) {
+                    Text("Mengerti", fontWeight = FontWeight.Bold)
+                }
             }
         )
     }

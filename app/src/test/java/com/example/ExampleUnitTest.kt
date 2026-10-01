@@ -59,6 +59,20 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun testKasSummaryWithSaldoAwal() {
+        val kas = KasSummary(
+            totalMasuk = 5_000_000L,
+            totalKeluarDistributor = 3_000_000L,
+            totalKeluarOperasional = 500_000L,
+            saldoAwal = 2_000_000L
+        )
+
+        assertEquals(3_500_000L, kas.totalKeluar)
+        // 2,000,000 + 5,000,000 - 3,500,000 = 3,500,000L
+        assertEquals(3_500_000L, kas.saldoKas)
+    }
+
+    @Test
     fun testWeightedAverageRounding() {
         val currentStock = 10
         val currentHargaDasar = 10_000L
@@ -221,6 +235,62 @@ class ExampleUnitTest {
 
         val persen = Formatters.formatPersen(12.5)
         assertEquals("12,5%", persen)
+    }
+
+    @Test
+    fun testBusinessRulesFormulas() {
+        // PO1: 100 units @ 10.000
+        val po1Qty = 100
+        val po1Price = 10_000L
+        val costAfterPo1 = po1Qty.toLong() * po1Price // 1.000.000
+
+        // PO2: 50 units @ 13.000
+        val po2Qty = 50
+        val po2Price = 13_000L
+        val totalCostPo1Po2 = costAfterPo1 + (po2Qty.toLong() * po2Price) // 1.650.000
+        val totalQtyPo1Po2 = po1Qty + po2Qty // 150
+        val avgCost = Math.round(totalCostPo1Po2.toDouble() / totalQtyPo1Po2)
+        assertEquals(11_000L, avgCost)
+
+        // SO: 40 units @ 15.000
+        val soQty = 40
+        val soPrice = 15_000L
+        val omset = soQty.toLong() * soPrice
+        assertEquals(600_000L, omset)
+
+        // HPP at time of sale snapshot:
+        val hpp = soQty.toLong() * avgCost
+        assertEquals(440_000L, hpp)
+
+        val labaKotor = omset - hpp
+        assertEquals(160_000L, labaKotor)
+
+        // Payment: 300.000 -> Customer commission (5%)
+        val payment = 300_000L
+        val commissionRate = 5.0
+        val commission = Math.round((payment.toDouble() * commissionRate) / 100.0)
+        assertEquals(15_000L, commission)
+
+        // Expense: 20.000
+        val expense = 20_000L
+
+        // Laba Bersih = Laba Kotor - Expense - Commission
+        val labaBersih = labaKotor - expense - commission
+        assertEquals(125_000L, labaBersih)
+
+        // Then PO3: 50 units @ 20.000
+        val remainingStockBeforePo3 = totalQtyPo1Po2 - soQty // 110 units
+        val remainingCost = remainingStockBeforePo3.toLong() * avgCost // 1.210.000
+        val po3Qty = 50
+        val po3Price = 20_000L
+        val newTotalCost = remainingCost + (po3Qty.toLong() * po3Price) // 2.210.000
+        val newTotalQty = remainingStockBeforePo3 + po3Qty // 160
+        val newAvgCost = Math.round(newTotalCost.toDouble() / newTotalQty)
+        assertEquals(13_813L, newAvgCost)
+
+        // Assert the earlier SO's HPP stays 440.000 (does not change with PO3)
+        val earlierSoHppStill = soQty.toLong() * avgCost
+        assertEquals(440_000L, earlierSoHppStill)
     }
 }
 

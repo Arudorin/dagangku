@@ -46,6 +46,7 @@ fun HomeScreen(
     onNavigateToPoDetail: (Long) -> Unit,
     onNavigateToKeuangan: () -> Unit,
     onNavigateToLaporan: () -> Unit = {},
+    onNavigateToPengaturan: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val summary by viewModel.dashboardSummary.collectAsStateWithLifecycle()
@@ -84,6 +85,16 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.FileDownload,
                             contentDescription = "Ekspor Laporan PDF & Excel",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    IconButton(
+                        onClick = onNavigateToPengaturan,
+                        modifier = Modifier.testTag("btn_pengaturan_beranda")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Pengaturan",
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }

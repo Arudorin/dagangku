@@ -50,7 +50,9 @@ fun CatatPembayaranBottomSheet(
     val methods = listOf("Tunai", "Transfer Bank", "QRIS", "Giro", "Lainnya")
 
     val inputNominal = nominalText.toLongOrNull() ?: 0L
+    val isExceedingBalance = inputNominal > targetInfo.remainingBalance
     val sisaSetelahBayar = (targetInfo.remainingBalance - inputNominal).coerceAtLeast(0L)
+    val isSaveEnabled = inputNominal > 0L && !isExceedingBalance
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -263,13 +265,51 @@ fun CatatPembayaranBottomSheet(
                 prefix = { Text("Rp ") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
+                isError = isExceedingBalance,
+                supportingText = {
+                    if (isExceedingBalance) {
+                        Text(
+                            text = "Nominal melebihi sisa tagihan",
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("input_sheet_nominal")
             )
 
+            if (isExceedingBalance) {
+                Surface(
+                    color = StatusRedContainer,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.ErrorOutline,
+                            contentDescription = null,
+                            tint = StatusRedText,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Nominal melebihi sisa tagihan",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = StatusRedText
+                            )
+                        )
+                    }
+                }
+            }
+
             // Balance after payment preview
-            if (inputNominal > 0L) {
+            if (inputNominal > 0L && !isExceedingBalance) {
                 Surface(
                     color = if (sisaSetelahBayar == 0L) StatusGreenContainer else MaterialTheme.colorScheme.surfaceVariant,
                     shape = RoundedCornerShape(10.dp),
@@ -355,8 +395,13 @@ fun CatatPembayaranBottomSheet(
                             errorMessage = "Nominal pembayaran harus lebih besar dari 0"
                             return@Button
                         }
+                        if (nominal > targetInfo.remainingBalance) {
+                            errorMessage = "Nominal melebihi sisa tagihan"
+                            return@Button
+                        }
                         onSavePayment(nominal, metode, catatan)
                     },
+                    enabled = isSaveEnabled,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = accentColor,
                         contentColor = MaterialTheme.colorScheme.onPrimary

@@ -11,10 +11,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.ui.components.InitialSetupDialog
 import com.example.ui.screens.customer.CustomerDetailScreen
 import com.example.ui.screens.home.HomeScreen
 import com.example.ui.screens.keuangan.KeuanganScreen
 import com.example.ui.screens.laporan.LaporanScreen
+import com.example.ui.screens.pengaturan.PengaturanScreen
 import com.example.ui.screens.po.CreatePoScreen
 import com.example.ui.screens.po.PoDetailScreen
 import com.example.ui.screens.so.CreateSoScreen
@@ -22,6 +24,7 @@ import com.example.ui.screens.so.SoDetailScreen
 import com.example.ui.screens.stok.ProdukScreen
 import com.example.ui.screens.transaksi.TransaksiScreen
 import com.example.ui.theme.DagangBluePrimary
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
 
 enum class BottomNavTab(
@@ -49,6 +52,7 @@ sealed interface Screen {
     data object CreateSo : Screen
     data class SoDetail(val soId: Long) : Screen
     data class CustomerDetail(val customerId: Long) : Screen
+    data object Pengaturan : Screen
 }
 
 @Composable
@@ -59,6 +63,7 @@ fun DagangKuApp(
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
     var transaksiSubTab by remember { mutableIntStateOf(0) }
 
+    val hasChosenSetup by viewModel.hasChosenInitialSetup.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -75,12 +80,25 @@ fun DagangKuApp(
         }
     }
 
+    // First launch setup prompt: ask "Mulai kosong" or "Pakai data contoh"
+    if (!hasChosenSetup) {
+        InitialSetupDialog(
+            onChooseEmpty = {
+                viewModel.setInitialSetupChoice(useSampleData = false)
+            },
+            onChooseSampleData = {
+                viewModel.setInitialSetupChoice(useSampleData = true)
+            }
+        )
+    }
+
     // Determine whether to show the bottom bar (hide inside create / detail sub-screens)
     val isSubScreen = currentScreen is Screen.CreatePo ||
             currentScreen is Screen.PoDetail ||
             currentScreen is Screen.CreateSo ||
             currentScreen is Screen.SoDetail ||
-            currentScreen is Screen.CustomerDetail
+            currentScreen is Screen.CustomerDetail ||
+            currentScreen is Screen.Pengaturan
 
     // Back handling
     BackHandler(enabled = isSubScreen || currentTab != BottomNavTab.BERANDA) {
@@ -171,6 +189,9 @@ fun DagangKuApp(
                     onNavigateToLaporan = {
                         currentTab = BottomNavTab.LAPORAN
                         currentScreen = Screen.Laporan
+                    },
+                    onNavigateToPengaturan = {
+                        currentScreen = Screen.Pengaturan
                     }
                 )
 
@@ -251,6 +272,13 @@ fun DagangKuApp(
                     },
                     onNavigateToSoDetail = { soId ->
                         currentScreen = Screen.SoDetail(soId)
+                    }
+                )
+
+                is Screen.Pengaturan -> PengaturanScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = {
+                        currentScreen = Screen.Home
                     }
                 )
             }

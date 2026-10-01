@@ -28,6 +28,7 @@ import com.example.data.model.ProdukWithStock
 import com.example.ui.MainViewModel
 import com.example.ui.components.ConfirmDeleteDialog
 import com.example.ui.components.DagangKuTopAppBar
+import kotlinx.coroutines.launch
 import com.example.ui.components.EmptyStateView
 import com.example.ui.components.StockBadge
 import com.example.ui.theme.*
@@ -47,6 +48,8 @@ fun ProdukScreen(
     var showFormDialog by remember { mutableStateOf(false) }
     var editingProduct by remember { mutableStateOf<Produk?>(null) }
     var productToDelete by remember { mutableStateOf<Produk?>(null) }
+    var cannotDeleteMessage by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     val filteredList = remember(produkList, searchQuery, selectedFilter) {
         produkList.filter { item ->
@@ -163,7 +166,13 @@ fun ProdukScreen(
                                 showFormDialog = true
                             },
                             onDelete = {
-                                productToDelete = itemWithStock.produk
+                                coroutineScope.launch {
+                                    if (!viewModel.canDeleteProduk(itemWithStock.produk.id)) {
+                                        cannotDeleteMessage = "Produk '${itemWithStock.produk.nama}' tidak dapat dihapus karena sudah digunakan dalam riwayat transaksi pembelian (PO) atau penjualan (SO)."
+                                    } else {
+                                        productToDelete = itemWithStock.produk
+                                    }
+                                }
                             }
                         )
                     }
@@ -188,6 +197,21 @@ fun ProdukScreen(
                     stokMinimum = stokMin,
                     onSuccess = { showFormDialog = false }
                 )
+            }
+        )
+    }
+
+    // Cannot Delete Alert Dialog
+    cannotDeleteMessage?.let { msg ->
+        AlertDialog(
+            onDismissRequest = { cannotDeleteMessage = null },
+            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = StatusAmberText) },
+            title = { Text("Tidak Dapat Menghapus Produk", fontWeight = FontWeight.Bold) },
+            text = { Text(msg) },
+            confirmButton = {
+                TextButton(onClick = { cannotDeleteMessage = null }) {
+                    Text("Mengerti", fontWeight = FontWeight.Bold)
+                }
             }
         )
     }

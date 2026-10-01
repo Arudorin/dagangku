@@ -1,5 +1,6 @@
 package com.example.data.repository
 
+import android.content.Context
 import com.example.data.local.AppDatabase
 import com.example.data.model.*
 import kotlinx.coroutines.Dispatchers
@@ -7,8 +8,28 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 
 class DagangKuRepositoryImpl(
-    private val db: AppDatabase
+    private val db: AppDatabase,
+    private val context: Context? = null
 ) : DagangKuRepository {
+
+    companion object {
+        private const val PREFS_NAME = "dagangku_prefs"
+        private const val KEY_SALDO_AWAL_KAS = "saldo_awal_kas"
+        private const val KEY_SAMPLE_DATA_ENABLED = "sample_data_enabled"
+        private const val KEY_HAS_CHOSEN_SETUP = "has_chosen_setup"
+    }
+
+    private val prefs = context?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    private val _saldoAwalKasFlow = MutableStateFlow(
+        prefs?.getLong(KEY_SALDO_AWAL_KAS, 0L) ?: 0L
+    )
+    private val _sampleDataEnabledFlow = MutableStateFlow(
+        prefs?.getBoolean(KEY_SAMPLE_DATA_ENABLED, false) ?: false
+    )
+    private val _hasChosenSetupFlow = MutableStateFlow(
+        prefs?.getBoolean(KEY_HAS_CHOSEN_SETUP, false) ?: false
+    )
 
     private val produkDao = db.produkDao()
     private val distributorDao = db.distributorDao()
@@ -59,7 +80,20 @@ class DagangKuRepositoryImpl(
     }
 
     override suspend fun deleteProduk(produk: Produk) = withContext(Dispatchers.IO) {
+        val poCount = itemPoDao.countByProdukId(produk.id)
+        val soCount = itemSoDao.countByProdukId(produk.id)
+        if (poCount > 0 || soCount > 0) {
+            val transactions = mutableListOf<String>()
+            if (poCount > 0) transactions.add("$poCount transaksi Pembelian (PO)")
+            if (soCount > 0) transactions.add("$soCount transaksi Penjualan (SO)")
+            throw IllegalStateException("Produk '${produk.nama}' tidak dapat dihapus karena sudah digunakan dalam ${transactions.joinToString(" dan ")}.")
+        }
+        hargaCustomerDao.deleteByProdukId(produk.id)
         produkDao.delete(produk)
+    }
+
+    override suspend fun canDeleteProduk(produkId: Long): Boolean = withContext(Dispatchers.IO) {
+        itemPoDao.countByProdukId(produkId) == 0 && itemSoDao.countByProdukId(produkId) == 0
     }
 
     override suspend fun getProdukStock(produkId: Long): Int = withContext(Dispatchers.IO) {
@@ -86,7 +120,15 @@ class DagangKuRepositoryImpl(
     }
 
     override suspend fun deleteDistributor(distributor: Distributor) = withContext(Dispatchers.IO) {
+        val poCount = poDao.countByDistributorId(distributor.id)
+        if (poCount > 0) {
+            throw IllegalStateException("Distributor '${distributor.nama}' tidak dapat dihapus karena memiliki riwayat $poCount transaksi Pembelian (PO).")
+        }
         distributorDao.delete(distributor)
+    }
+
+    override suspend fun canDeleteDistributor(distributorId: Long): Boolean = withContext(Dispatchers.IO) {
+        poDao.countByDistributorId(distributorId) == 0
     }
 
     // ----------------------------------------------------
@@ -109,7 +151,16 @@ class DagangKuRepositoryImpl(
     }
 
     override suspend fun deleteCustomer(customer: Customer) = withContext(Dispatchers.IO) {
+        val soCount = soDao.countByCustomerId(customer.id)
+        if (soCount > 0) {
+            throw IllegalStateException("Pelanggan '${customer.nama}' tidak dapat dihapus karena memiliki riwayat $soCount transaksi Penjualan (SO).")
+        }
+        hargaCustomerDao.deleteByCustomerId(customer.id)
         customerDao.delete(customer)
+    }
+
+    override suspend fun canDeleteCustomer(customerId: Long): Boolean = withContext(Dispatchers.IO) {
+        soDao.countByCustomerId(customerId) == 0
     }
 
     // ----------------------------------------------------
@@ -224,10 +275,18 @@ class DagangKuRepositoryImpl(
                 return@withContext Result.failure(IllegalArgumentException("PO harus memiliki minimal 1 item"))
             }
 
+            // Merge duplicate products if any: merge qty and use latest purchase price
+            val mergedItems = items.groupBy { it.produkId }
+                .map { (prodId, group) ->
+                    val totalQty = group.sumOf { it.qty }
+                    val latestPrice = group.last().hargaBeli
+                    group.first().copy(qty = totalQty, hargaBeli = latestPrice)
+                }
+
             // 1. Update hargaDasar of each product using Weighted Average Cost
             // Formula: ((stokLama * hargaDasarLama) + (qtyBeli * hargaBeli)) / (stokLama + qtyBeli)
             // Round the weighted-average cost to the nearest rupiah
-            for (item in items) {
+            for (item in mergedItems) {
                 val product = produkDao.getById(item.produkId)
                 if (product != null) {
                     val currentStock = getProdukStock(item.produkId)
@@ -242,11 +301,13 @@ class DagangKuRepositoryImpl(
                 }
             }
 
-            // 2. Insert PO
-            val poId = poDao.insert(po)
+            // 2. Insert PO with recalculated total
+            val recalculatedTotal = mergedItems.sumOf { it.qty.toLong() * it.hargaBeli }
+            val finalPo = po.copy(total = recalculatedTotal)
+            val poId = poDao.insert(finalPo)
 
             // 3. Insert PO Items with assigned poId
-            val itemsWithPoId = items.map { it.copy(poId = poId) }
+            val itemsWithPoId = mergedItems.map { it.copy(poId = poId) }
             itemPoDao.insertAll(itemsWithPoId)
 
             Result.success(poId)
@@ -334,8 +395,17 @@ class DagangKuRepositoryImpl(
                 return@withContext Result.failure(IllegalArgumentException("SO harus memiliki minimal 1 item"))
             }
 
-            // CRITICAL BUSINESS RULE: Block the SO if stock is insufficient
-            for (item in items) {
+            // Merge duplicate products if any: merge qty and use latest selling price and snapshot HPP
+            val mergedItems = items.groupBy { it.produkId }
+                .map { (prodId, group) ->
+                    val totalQty = group.sumOf { it.qty }
+                    val latestPrice = group.last().harga
+                    val latestHpp = group.last().hppSaatJual
+                    group.first().copy(qty = totalQty, harga = latestPrice, hppSaatJual = latestHpp)
+                }
+
+            // CRITICAL BUSINESS RULE: Recheck stock on the merged total
+            for (item in mergedItems) {
                 val availableStock = getProdukStock(item.produkId)
                 if (item.qty > availableStock) {
                     val prod = produkDao.getById(item.produkId)
@@ -348,14 +418,17 @@ class DagangKuRepositoryImpl(
             }
 
             // Fill hppSaatJual with the product's current weighted-average hargaDasar
-            val itemsWithHpp = items.map { item ->
+            val itemsWithHpp = mergedItems.map { item ->
                 val prod = produkDao.getById(item.produkId)
                 val currentHargaDasar = prod?.hargaDasar ?: item.hppSaatJual
                 item.copy(hppSaatJual = currentHargaDasar)
             }
 
+            val recalculatedTotal = itemsWithHpp.sumOf { it.qty.toLong() * it.harga }
+            val finalSo = so.copy(total = recalculatedTotal)
+
             // Insert SO
-            val soId = soDao.insert(so)
+            val soId = soDao.insert(finalSo)
 
             // Insert SO Items (this decreases available stock dynamically)
             val itemsWithSoId = itemsWithHpp.map { it.copy(soId = soId) }
@@ -385,6 +458,19 @@ class DagangKuRepositoryImpl(
     override fun getAllPayments(): Flow<List<Pembayaran>> = pembayaranDao.getAll()
 
     override suspend fun addPembayaran(pembayaran: Pembayaran): Long = withContext(Dispatchers.IO) {
+        if (pembayaran.nominal <= 0) {
+            throw IllegalArgumentException("Nominal pembayaran harus lebih besar dari 0")
+        }
+        val totalTransaction = if (pembayaran.tipe == "CUSTOMER") {
+            soDao.getById(pembayaran.refId)?.total ?: 0L
+        } else {
+            poDao.getById(pembayaran.refId)?.total ?: 0L
+        }
+        val alreadyPaid = pembayaranDao.getTotalPaidForRef(pembayaran.tipe, pembayaran.refId)
+        val remaining = (totalTransaction - alreadyPaid).coerceAtLeast(0L)
+        if (pembayaran.nominal > remaining) {
+            throw IllegalArgumentException("Nominal melebihi sisa tagihan")
+        }
         pembayaranDao.insert(pembayaran)
     }
 
@@ -476,15 +562,17 @@ class DagangKuRepositoryImpl(
         return combine(
             pembayaranDao.getByType("CUSTOMER"),
             pembayaranDao.getByType("DISTRIBUTOR"),
-            pengeluaranDao.getAll()
-        ) { custPayments, distPayments, expenses ->
+            pengeluaranDao.getAll(),
+            _saldoAwalKasFlow
+        ) { custPayments, distPayments, expenses, saldoAwal ->
             val totalIn = custPayments.sumOf { it.nominal }
             val totalOutDist = distPayments.sumOf { it.nominal }
             val totalOutExp = expenses.sumOf { it.nominal }
             KasSummary(
                 totalMasuk = totalIn,
                 totalKeluarDistributor = totalOutDist,
-                totalKeluarOperasional = totalOutExp
+                totalKeluarOperasional = totalOutExp,
+                saldoAwal = saldoAwal
             )
         }
     }
@@ -737,9 +825,139 @@ class DagangKuRepositoryImpl(
     // ----------------------------------------------------
     // Initial Seed Data
     // ----------------------------------------------------
+    // ----------------------------------------------------
+    // Pengaturan & Data Management
+    // ----------------------------------------------------
+    override fun getSaldoAwalKas(): Flow<Long> = _saldoAwalKasFlow.asStateFlow()
+
+    override suspend fun setSaldoAwalKas(saldoAwal: Long) = withContext(Dispatchers.IO) {
+        val nonNegative = saldoAwal.coerceAtLeast(0L)
+        prefs?.edit()?.putLong(KEY_SALDO_AWAL_KAS, nonNegative)?.apply()
+        _saldoAwalKasFlow.value = nonNegative
+    }
+
+    override fun isSampleDataEnabled(): Flow<Boolean> = _sampleDataEnabledFlow.asStateFlow()
+
+    override fun hasChosenInitialSetup(): Flow<Boolean> = _hasChosenSetupFlow.asStateFlow()
+
+    override suspend fun setInitialSetupChoice(useSampleData: Boolean) = withContext(Dispatchers.IO) {
+        prefs?.edit()?.putBoolean(KEY_HAS_CHOSEN_SETUP, true)?.apply()
+        _hasChosenSetupFlow.value = true
+        if (useSampleData) {
+            seedSampleData()
+        } else {
+            prefs?.edit()?.putBoolean(KEY_SAMPLE_DATA_ENABLED, false)?.apply()
+            _sampleDataEnabledFlow.value = false
+        }
+    }
+
+    override suspend fun clearAllData() = withContext(Dispatchers.IO) {
+        pembayaranDao.deleteAll()
+        pengeluaranDao.deleteAll()
+        itemSoDao.deleteAll()
+        soDao.deleteAll()
+        itemPoDao.deleteAll()
+        poDao.deleteAll()
+        hargaCustomerDao.deleteAll()
+        customerDao.deleteAll()
+        distributorDao.deleteAll()
+        produkDao.deleteAll()
+
+        prefs?.edit()?.putBoolean(KEY_SAMPLE_DATA_ENABLED, false)?.apply()
+        _sampleDataEnabledFlow.value = false
+    }
+
+    override suspend fun removeSampleData() = withContext(Dispatchers.IO) {
+        clearAllData()
+    }
+
+    override suspend fun seedSampleData() = withContext(Dispatchers.IO) {
+        // Clear existing data first
+        pembayaranDao.deleteAll()
+        pengeluaranDao.deleteAll()
+        itemSoDao.deleteAll()
+        soDao.deleteAll()
+        itemPoDao.deleteAll()
+        poDao.deleteAll()
+        hargaCustomerDao.deleteAll()
+        customerDao.deleteAll()
+        distributorDao.deleteAll()
+        produkDao.deleteAll()
+
+        seedDataInternal()
+
+        prefs?.edit()?.putBoolean(KEY_SAMPLE_DATA_ENABLED, true)?.apply()
+        _sampleDataEnabledFlow.value = true
+    }
+
+    override suspend fun exportDatabaseBackup(): com.example.util.BackupData = withContext(Dispatchers.IO) {
+        val saldoAwal = _saldoAwalKasFlow.value
+        com.example.util.BackupData(
+            metadata = com.example.util.BackupMetadata(
+                appName = "DagangKu",
+                version = 1,
+                exportedAt = System.currentTimeMillis(),
+                saldoAwalKas = saldoAwal
+            ),
+            produkList = produkDao.getAllList(),
+            distributorList = distributorDao.getAllList(),
+            customerList = customerDao.getAllList(),
+            hargaCustomerList = hargaCustomerDao.getAllList(),
+            poList = poDao.getAllList(),
+            itemPoList = itemPoDao.getAllList(),
+            soList = soDao.getAllList(),
+            itemSoList = itemSoDao.getAllList(),
+            pembayaranList = pembayaranDao.getAllList(),
+            pengeluaranList = pengeluaranDao.getAllList()
+        )
+    }
+
+    override suspend fun restoreDatabaseBackup(backupData: com.example.util.BackupData): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            // Delete existing data in reverse dependency order
+            pembayaranDao.deleteAll()
+            pengeluaranDao.deleteAll()
+            itemSoDao.deleteAll()
+            soDao.deleteAll()
+            itemPoDao.deleteAll()
+            poDao.deleteAll()
+            hargaCustomerDao.deleteAll()
+            customerDao.deleteAll()
+            distributorDao.deleteAll()
+            produkDao.deleteAll()
+
+            // Insert restored entities in forward dependency order
+            if (backupData.produkList.isNotEmpty()) produkDao.insertAll(backupData.produkList)
+            if (backupData.distributorList.isNotEmpty()) distributorDao.insertAll(backupData.distributorList)
+            if (backupData.customerList.isNotEmpty()) customerDao.insertAll(backupData.customerList)
+            if (backupData.hargaCustomerList.isNotEmpty()) hargaCustomerDao.insertAll(backupData.hargaCustomerList)
+            if (backupData.poList.isNotEmpty()) poDao.insertAll(backupData.poList)
+            if (backupData.itemPoList.isNotEmpty()) itemPoDao.insertAll(backupData.itemPoList)
+            if (backupData.soList.isNotEmpty()) soDao.insertAll(backupData.soList)
+            if (backupData.itemSoList.isNotEmpty()) itemSoDao.insertAll(backupData.itemSoList)
+            if (backupData.pembayaranList.isNotEmpty()) pembayaranDao.insertAll(backupData.pembayaranList)
+            if (backupData.pengeluaranList.isNotEmpty()) pengeluaranDao.insertAll(backupData.pengeluaranList)
+
+            // Restore Saldo Awal
+            val restoredSaldo = backupData.metadata.saldoAwalKas.coerceAtLeast(0L)
+            prefs?.edit()?.putLong(KEY_SALDO_AWAL_KAS, restoredSaldo)?.apply()
+            _saldoAwalKasFlow.value = restoredSaldo
+
+            prefs?.edit()?.putBoolean(KEY_SAMPLE_DATA_ENABLED, false)?.apply()
+            _sampleDataEnabledFlow.value = false
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     override suspend fun seedInitialDataIfNeeded() = withContext(Dispatchers.IO) {
-        val existingProducts = produkDao.getAll().first()
-        if (existingProducts.isNotEmpty()) return@withContext
+        // Requirement 4: Do NOT auto-seed on first launch.
+        // Seeding is only performed upon explicit user choice ("Pakai data contoh" or settings toggle).
+    }
+
+    private suspend fun seedDataInternal() {
 
         // Seed Distributors
         val dist1Id = distributorDao.insert(

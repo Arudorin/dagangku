@@ -136,10 +136,11 @@ data class KasTransaction(
 data class KasSummary(
     val totalMasuk: Long = 0L,
     val totalKeluarDistributor: Long = 0L,
-    val totalKeluarOperasional: Long = 0L
+    val totalKeluarOperasional: Long = 0L,
+    val saldoAwal: Long = 0L
 ) {
     val totalKeluar: Long get() = totalKeluarDistributor + totalKeluarOperasional
-    val saldoKas: Long get() = totalMasuk - totalKeluar
+    val saldoKas: Long get() = saldoAwal + totalMasuk - totalKeluar
 }
 
 data class PaymentTargetInfo(

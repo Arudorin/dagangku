@@ -23,6 +23,7 @@ import com.example.data.model.Distributor
 import com.example.ui.MainViewModel
 import com.example.ui.components.ConfirmDeleteDialog
 import com.example.ui.components.DagangKuTopAppBar
+import kotlinx.coroutines.launch
 import com.example.ui.components.EmptyStateView
 import com.example.ui.theme.*
 
@@ -38,6 +39,8 @@ fun DistributorScreen(
     var showFormDialog by remember { mutableStateOf(false) }
     var editingDistributor by remember { mutableStateOf<Distributor?>(null) }
     var distributorToDelete by remember { mutableStateOf<Distributor?>(null) }
+    var cannotDeleteMessage by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     val filteredList = remember(distributorList, searchQuery) {
         if (searchQuery.isBlank()) distributorList else {
@@ -124,7 +127,13 @@ fun DistributorScreen(
                                 showFormDialog = true
                             },
                             onDelete = {
-                                distributorToDelete = distributor
+                                coroutineScope.launch {
+                                    if (!viewModel.canDeleteDistributor(distributor.id)) {
+                                        cannotDeleteMessage = "Distributor '${distributor.nama}' tidak dapat dihapus karena sudah memiliki riwayat transaksi Pembelian (PO)."
+                                    } else {
+                                        distributorToDelete = distributor
+                                    }
+                                }
                             }
                         )
                     }
@@ -146,6 +155,20 @@ fun DistributorScreen(
                     alamat = alamat,
                     onSuccess = { showFormDialog = false }
                 )
+            }
+        )
+    }
+
+    cannotDeleteMessage?.let { msg ->
+        AlertDialog(
+            onDismissRequest = { cannotDeleteMessage = null },
+            icon = { Icon(Icons.Default.Warning, contentDescription = null, tint = StatusAmberText) },
+            title = { Text("Tidak Dapat Menghapus Distributor", fontWeight = FontWeight.Bold) },
+            text = { Text(msg) },
+            confirmButton = {
+                TextButton(onClick = { cannotDeleteMessage = null }) {
+                    Text("Mengerti", fontWeight = FontWeight.Bold)
+                }
             }
         )
     }

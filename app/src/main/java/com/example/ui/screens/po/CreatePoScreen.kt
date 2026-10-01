@@ -382,9 +382,20 @@ fun CreatePoScreen(
     if (showAddItemDialog) {
         AddPoItemDialog(
             allProduk = produkList.map { it.produk },
+            existingCartItems = cartItems.toList(),
             onDismiss = { showAddItemDialog = false },
             onAddItem = { prod, qty, hargaBeli ->
-                cartItems.add(CartItemPo(produk = prod, qty = qty, hargaBeli = hargaBeli))
+                val existingIndex = cartItems.indexOfFirst { it.produk.id == prod.id }
+                if (existingIndex >= 0) {
+                    val existing = cartItems[existingIndex]
+                    val mergedQty = existing.qty + qty
+                    cartItems[existingIndex] = existing.copy(
+                        qty = mergedQty,
+                        hargaBeli = hargaBeli
+                    )
+                } else {
+                    cartItems.add(CartItemPo(produk = prod, qty = qty, hargaBeli = hargaBeli))
+                }
                 validationError = null
                 showAddItemDialog = false
             }
@@ -396,6 +407,7 @@ fun CreatePoScreen(
 @Composable
 fun AddPoItemDialog(
     allProduk: List<Produk>,
+    existingCartItems: List<CartItemPo> = emptyList(),
     onDismiss: () -> Unit,
     onAddItem: (produk: Produk, qty: Int, hargaBeli: Long) -> Unit
 ) {
@@ -411,6 +423,10 @@ fun AddPoItemDialog(
     val qty = qtyText.toIntOrNull() ?: 0
     val hargaBeli = hargaBeliText.toLongOrNull() ?: 0L
     val subtotal = qty.toLong() * hargaBeli
+
+    val existingInCart = remember(selectedProduct, existingCartItems) {
+        selectedProduct?.let { p -> existingCartItems.firstOrNull { it.produk.id == p.id } }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -474,6 +490,21 @@ fun AddPoItemDialog(
                                 }
                             )
                         }
+                    }
+                }
+
+                if (existingInCart != null) {
+                    Surface(
+                        color = StatusAmberContainer,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "ℹ️ Produk ini sudah ada di daftar (${existingInCart.qty} ${selectedProduct?.satuan}). Jumlah akan digabungkan menjadi ${existingInCart.qty + qty} ${selectedProduct?.satuan}.",
+                            color = StatusAmberText,
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                            modifier = Modifier.padding(8.dp)
+                        )
                     }
                 }
 

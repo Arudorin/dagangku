@@ -69,6 +69,25 @@ interface DagangKuRepository {
     // Laporan Keuangan (Step 3)
     fun getLaporanKeuangan(startDate: Long, endDate: Long, periodType: PeriodType): Flow<LaporanKeuanganData>
 
+    // Validation checks for deletion
+    suspend fun canDeleteProduk(produkId: Long): Boolean
+    suspend fun canDeleteDistributor(distributorId: Long): Boolean
+    suspend fun canDeleteCustomer(customerId: Long): Boolean
+
+    // Pengaturan & Data Management
+    fun getSaldoAwalKas(): Flow<Long>
+    suspend fun setSaldoAwalKas(saldoAwal: Long)
+    fun isSampleDataEnabled(): Flow<Boolean>
+    fun hasChosenInitialSetup(): Flow<Boolean>
+    suspend fun setInitialSetupChoice(useSampleData: Boolean)
+    suspend fun clearAllData()
+    suspend fun seedSampleData()
+    suspend fun removeSampleData()
+
+    // Backup & Restore
+    suspend fun exportDatabaseBackup(): com.example.util.BackupData
+    suspend fun restoreDatabaseBackup(backupData: com.example.util.BackupData): Result<Unit>
+
     // Seed
     suspend fun seedInitialDataIfNeeded()
 }
