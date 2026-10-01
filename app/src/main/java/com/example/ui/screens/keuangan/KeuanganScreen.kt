@@ -215,123 +215,48 @@ fun KeuanganScreen(
                 }
             }
 
-            // Tab Row for 4 Tabs with short labels and badges
+            // Tab Row for 4 Tabs with plain text counts (no Badge)
             val piutangCount = remember(soList) { soList.count { it.sisaPiutang > 0 } }
             val hutangCount = remember(poList) { poList.count { it.sisaHutang > 0 } }
+
+            val tabs = listOf(
+                Pair("Kas (${bukuKas.size})", "tab_keuangan_kas"),
+                Pair("Piutang ($piutangCount)", "tab_keuangan_piutang"),
+                Pair("Hutang ($hutangCount)", "tab_keuangan_hutang"),
+                Pair("Beban (${pengeluaranList.size})", "tab_keuangan_beban")
+            )
 
             TabRow(
                 selectedTabIndex = selectedTab,
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = MaterialTheme.colorScheme.primary
             ) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    modifier = Modifier.testTag("tab_keuangan_kas"),
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                tabs.forEachIndexed { index, (label, testTag) ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        modifier = Modifier.testTag(testTag)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 2.dp, vertical = 14.dp),
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Kas",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Medium
-                                ),
+                                text = label,
                                 maxLines = 1,
-                                softWrap = false
+                                softWrap = false,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Medium,
+                                    fontSize = 12.sp
+                                ),
+                                color = if (selectedTab == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Badge(
-                                containerColor = if (selectedTab == 0) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = if (selectedTab == 0) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                            ) {
-                                Text("${bukuKas.size}", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            }
                         }
                     }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    modifier = Modifier.testTag("tab_keuangan_piutang"),
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "Piutang",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Medium
-                                ),
-                                maxLines = 1,
-                                softWrap = false
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Badge(
-                                containerColor = if (selectedTab == 1) StatusAmberContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = if (selectedTab == 1) StatusAmberText else MaterialTheme.colorScheme.onSurfaceVariant
-                            ) {
-                                Text("$piutangCount", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                )
-                Tab(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    modifier = Modifier.testTag("tab_keuangan_hutang"),
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "Hutang",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = if (selectedTab == 2) FontWeight.Bold else FontWeight.Medium
-                                ),
-                                maxLines = 1,
-                                softWrap = false
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Badge(
-                                containerColor = if (selectedTab == 2) StatusRedContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = if (selectedTab == 2) StatusRedText else MaterialTheme.colorScheme.onSurfaceVariant
-                            ) {
-                                Text("$hutangCount", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                )
-                Tab(
-                    selected = selectedTab == 3,
-                    onClick = { selectedTab = 3 },
-                    modifier = Modifier.testTag("tab_keuangan_beban"),
-                    text = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "Beban",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = if (selectedTab == 3) FontWeight.Bold else FontWeight.Medium
-                                ),
-                                maxLines = 1,
-                                softWrap = false
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Badge(
-                                containerColor = if (selectedTab == 3) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = if (selectedTab == 3) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-                            ) {
-                                Text("${pengeluaranList.size}", fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-                )
+                }
             }
 
             // Tab Content

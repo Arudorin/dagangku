@@ -11,7 +11,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ui.components.InitialSetupDialog
 import com.example.ui.screens.customer.CustomerDetailScreen
 import com.example.ui.screens.home.HomeScreen
 import com.example.ui.screens.keuangan.KeuanganScreen
@@ -63,7 +62,6 @@ fun DagangKuApp(
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
     var transaksiSubTab by remember { mutableIntStateOf(0) }
 
-    val hasChosenSetup by viewModel.hasChosenInitialSetup.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -78,18 +76,6 @@ fun DagangKuApp(
                 }
             }
         }
-    }
-
-    // First launch setup prompt: ask "Mulai kosong" or "Pakai data contoh"
-    if (!hasChosenSetup) {
-        InitialSetupDialog(
-            onChooseEmpty = {
-                viewModel.setInitialSetupChoice(useSampleData = false)
-            },
-            onChooseSampleData = {
-                viewModel.setInitialSetupChoice(useSampleData = true)
-            }
-        )
     }
 
     // Determine whether to show the bottom bar (hide inside create / detail sub-screens)

@@ -50,6 +50,7 @@ fun PengaturanScreen(
     }
 
     var showClearAllConfirmDialog by remember { mutableStateOf(false) }
+    var showLoadSampleConfirmDialog by remember { mutableStateOf(false) }
     var showToggleOffSampleConfirmDialog by remember { mutableStateOf(false) }
 
     // Backup & Restore states
@@ -267,7 +268,7 @@ fun PengaturanScreen(
             }
 
             // -----------------------------------------------------------------
-            // 2. Data Contoh (Sample Data) Toggle
+            // 2. Muat Data Contoh (Untuk demo/uji coba)
             // -----------------------------------------------------------------
             Card(
                 shape = RoundedCornerShape(16.dp),
@@ -300,15 +301,35 @@ fun PengaturanScreen(
                         }
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Data Contoh (Sample Data)",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = "Muat Data Contoh",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 )
-                            )
+                                Surface(
+                                    color = StatusPurpleContainer,
+                                    shape = RoundedCornerShape(6.dp)
+                                ) {
+                                    Text(
+                                        text = "Untuk demo/uji coba",
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            color = StatusPurpleText,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 10.sp
+                                        ),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Gunakan data simulasi untuk demonstrasi dan uji coba fitur usaha",
+                                text = "Gunakan data simulasi usaha sembako untuk demonstrasi dan uji coba fitur aplikasi",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -318,7 +339,7 @@ fun PengaturanScreen(
                             checked = isSampleDataEnabled,
                             onCheckedChange = { checked ->
                                 if (checked) {
-                                    viewModel.toggleSampleData(true)
+                                    showLoadSampleConfirmDialog = true
                                 } else {
                                     showToggleOffSampleConfirmDialog = true
                                 }
@@ -329,7 +350,7 @@ fun PengaturanScreen(
 
                     Text(
                         text = if (isSampleDataEnabled) {
-                            "Status: Aktif — Database berisi data contoh sembako, pelanggan, dan transaksi."
+                            "Status: Aktif — Database berisi data contoh sembako, pelanggan, dan transaksi (Untuk demo/uji coba)."
                         } else {
                             "Status: Tidak Aktif — Tidak menggunakan data contoh demonstrasi."
                         },
@@ -882,6 +903,54 @@ fun PengaturanScreen(
                 showToggleOffSampleConfirmDialog = false
             },
             onDismiss = { showToggleOffSampleConfirmDialog = false }
+        )
+    }
+
+    // Confirm Load Sample Data Dialog (Untuk demo/uji coba)
+    if (showLoadSampleConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showLoadSampleConfirmDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Science,
+                    contentDescription = null,
+                    tint = StatusPurpleText
+                )
+            },
+            title = {
+                Text(
+                    text = "Muat Data Contoh?",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                )
+            },
+            text = {
+                Text(
+                    text = "Data contoh ditujukan untuk demo/uji coba fitur aplikasi (produk sembako, pelanggan, supplier, dan transaksi simulasi). Apakah Anda yakin ingin memuat data contoh ini?"
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.toggleSampleData(true)
+                        showLoadSampleConfirmDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Muat Data Contoh")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showLoadSampleConfirmDialog = false },
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Batal")
+                }
+            }
         )
     }
 }
