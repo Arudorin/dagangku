@@ -61,11 +61,12 @@ fun CustomerDetailScreen(
     var dealToDelete by remember { mutableStateOf<CustomerDealItem?>(null) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
                 title = customer?.nama ?: "Detail Pelanggan",
-                subtitle = "Kelola Profil & Harga Khusus",
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                windowInsets = WindowInsets(0)
             )
         },
         floatingActionButton = {

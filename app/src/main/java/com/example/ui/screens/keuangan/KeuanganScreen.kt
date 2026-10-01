@@ -53,10 +53,11 @@ fun KeuanganScreen(
     var paymentTargetInfo by remember { mutableStateOf<PaymentTargetInfo?>(null) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
                 title = "Keuangan & Kas",
-                subtitle = "Saldo Kas, Piutang, Hutang & Pengeluaran"
+                windowInsets = WindowInsets(0)
             )
         },
         floatingActionButton = {
@@ -85,7 +86,7 @@ fun KeuanganScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
                     .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
             ) {
                 Column(

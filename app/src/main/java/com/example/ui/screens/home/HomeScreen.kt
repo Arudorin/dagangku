@@ -73,10 +73,10 @@ fun HomeScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
                 title = "DagangKu",
-                subtitle = "Dasbor Usaha & Finansial",
                 actions = {
                     IconButton(
                         onClick = { showExportDialog = true },
@@ -107,8 +107,8 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // 1. Welcome & Greeting Card with Quick Export Callout
             item {

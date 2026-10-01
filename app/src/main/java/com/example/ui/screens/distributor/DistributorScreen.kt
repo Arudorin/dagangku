@@ -53,10 +53,11 @@ fun DistributorScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
-                title = "Data Distributor (Pemasok)",
-                subtitle = "${distributorList.size} Distributor Terdaftar"
+                title = "Distributor (${distributorList.size})",
+                windowInsets = WindowInsets(0)
             )
         },
         floatingActionButton = {
@@ -85,7 +86,7 @@ fun DistributorScreen(
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
                     .testTag("search_distributor_input"),
                 placeholder = { Text("Cari nama distributor, kontak, atau alamat...") },
                 leadingIcon = {

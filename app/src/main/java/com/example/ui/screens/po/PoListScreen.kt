@@ -56,10 +56,11 @@ fun PoListScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
-                title = "Pesanan Pembelian (PO)",
-                subtitle = "${poList.size} Transaksi Pembelian Stok"
+                title = "Pembelian (${poList.size})",
+                windowInsets = WindowInsets(0)
             )
         },
         floatingActionButton = {
@@ -85,7 +86,7 @@ fun PoListScreen(
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
                     .testTag("search_po_input"),
                 placeholder = { Text("Cari nomor PO atau nama distributor...") },
                 leadingIcon = {
@@ -106,7 +107,7 @@ fun PoListScreen(
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(horizontal = 16.dp, vertical = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val filters = listOf("Semua", "Belum Lunas", "Sebagian", "Lunas")

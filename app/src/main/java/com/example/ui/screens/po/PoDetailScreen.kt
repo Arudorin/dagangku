@@ -44,11 +44,12 @@ fun PoDetailScreen(
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
                 title = poDetail?.po?.nomor ?: "Detail PO",
-                subtitle = "Pembelian ke ${poDetail?.distributor?.nama ?: "Distributor"}",
                 onNavigateBack = onNavigateBack,
+                windowInsets = WindowInsets(0),
                 actions = {
                     IconButton(
                         onClick = { showDeleteConfirmDialog = true },

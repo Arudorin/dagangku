@@ -100,11 +100,12 @@ fun PengaturanScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
                 title = "Pengaturan",
-                subtitle = "Preferensi & Manajemen Data",
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                windowInsets = WindowInsets(0)
             )
         },
         modifier = modifier
@@ -114,8 +115,8 @@ fun PengaturanScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // -----------------------------------------------------------------
             // 1. Saldo Awal Kas

@@ -40,11 +40,12 @@ fun SoDetailScreen(
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
                 title = soDetail?.so?.nomor ?: "Detail SO",
-                subtitle = "Penjualan ke ${soDetail?.customer?.nama ?: "Pelanggan"}",
                 onNavigateBack = onNavigateBack,
+                windowInsets = WindowInsets(0),
                 actions = {
                     IconButton(
                         onClick = { showDeleteConfirmDialog = true },

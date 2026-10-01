@@ -56,10 +56,11 @@ fun SoListScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
-                title = "Pesanan Penjualan (SO)",
-                subtitle = "${soList.size} Transaksi Penjualan Barang"
+                title = "Penjualan (${soList.size})",
+                windowInsets = WindowInsets(0)
             )
         },
         floatingActionButton = {
@@ -85,7 +86,7 @@ fun SoListScreen(
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
                     .testTag("search_so_input"),
                 placeholder = { Text("Cari nomor SO atau nama pelanggan...") },
                 leadingIcon = {
@@ -106,7 +107,7 @@ fun SoListScreen(
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                    .padding(horizontal = 16.dp, vertical = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val filters = listOf("Semua", "Belum Lunas", "Sebagian", "Lunas")

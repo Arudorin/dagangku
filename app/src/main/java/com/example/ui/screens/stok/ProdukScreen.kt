@@ -66,10 +66,11 @@ fun ProdukScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
-                title = "Inventaris & Stok",
-                subtitle = "${produkList.size} Total Produk Terdaftar"
+                title = "Inventaris (${produkList.size})",
+                windowInsets = WindowInsets(0)
             )
         },
         floatingActionButton = {
@@ -98,7 +99,7 @@ fun ProdukScreen(
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
                     .testTag("search_produk_input"),
                 placeholder = { Text("Cari produk atau satuan...") },
                 leadingIcon = {

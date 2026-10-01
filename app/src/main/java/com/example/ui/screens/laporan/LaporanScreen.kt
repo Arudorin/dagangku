@@ -55,10 +55,11 @@ fun LaporanScreen(
     var showExportDialog by remember { mutableStateOf(false) }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
-                title = "Laporan Laba & Keuangan",
-                subtitle = laporanData.periodLabel.ifBlank { "Analisis Finansial Usaha" },
+                title = "Laporan Keuangan",
+                windowInsets = WindowInsets(0),
                 actions = {
                     IconButton(
                         onClick = { showExportDialog = true },
@@ -79,8 +80,8 @@ fun LaporanScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             // Period Filter Selector
             item {

@@ -61,11 +61,12 @@ fun CreatePoScreen(
     val totalPembelian = cartItems.sumOf { it.subtotal }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
                 title = "Buat PO Baru",
-                subtitle = "Pesanan Pembelian Stok",
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                windowInsets = WindowInsets(0)
             )
         },
         bottomBar = {

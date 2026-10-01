@@ -57,10 +57,11 @@ fun CustomerScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
-                title = "Data Pelanggan (Customer)",
-                subtitle = "${customerList.size} Pelanggan Terdaftar"
+                title = "Pelanggan (${customerList.size})",
+                windowInsets = WindowInsets(0)
             )
         },
         floatingActionButton = {
@@ -89,7 +90,7 @@ fun CustomerScreen(
                 onValueChange = { searchQuery = it },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
                     .testTag("search_customer_input"),
                 placeholder = { Text("Cari nama, nomor HP, atau alamat...") },
                 leadingIcon = {

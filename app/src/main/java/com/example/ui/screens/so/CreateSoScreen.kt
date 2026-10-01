@@ -80,11 +80,12 @@ fun CreateSoScreen(
     val hasInsufficientStock = cartItems.any { it.isInsufficientStock }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             DagangKuTopAppBar(
                 title = "Buat SO Baru",
-                subtitle = "Pesanan Penjualan Barang",
-                onNavigateBack = onNavigateBack
+                onNavigateBack = onNavigateBack,
+                windowInsets = WindowInsets(0)
             )
         },
         bottomBar = {
